@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/antongolenev23/tuchka-server/internal/model"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
@@ -25,3 +26,70 @@ func New(storagePath string) (*Storage, error) {
 
 	return &Storage{db: db}, nil
 }
+
+func (s *Storage) SaveFileMetainfo(info *model.MetainfoToSave) error {
+	const op = "storage.postgres.SaveFileMetaInfo"
+
+	query := `INSERT INTO files(name, path, size) VALUES($1, $2, $3)`
+
+	_, err := s.db.Exec(query, info.Name, info.Path, info.Size)
+	if err != nil{
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
+}
+
+func (s *Storage) GetFilesMetainfo() ([]model.MetainfoToGet, error) {
+	const op = "storage.postgres.GetFileMetaInfo"
+
+	query := `
+		SELECT name, path, size, created_at
+		FROM files
+	`
+
+	rows, err := s.db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	defer rows.Close()
+
+	var metainformations []model.MetainfoToGet
+
+	for rows.Next(){
+		var metainfo model.MetainfoToGet
+
+		err := rows.Scan(
+			&metainfo.Name,
+			&metainfo.Path,
+			&metainfo.Size,
+			&metainfo.CreatedAt,
+		)
+
+		if err != nil{
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+
+		metainformations = append(metainformations, metainfo)
+	}
+
+	if err = rows.Err(); err != nil{
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return metainformations, nil
+}
+
+func (s *Storage) DeleteFileMetainfo(name string) error {
+	const op = "storage.postgres.DeleteFileMetaInfo"
+
+	query := `DELETE FROM files WHERE name = $1`
+
+	_, err := s.db.Exec(query, name)
+	if err != nil{
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
+}
+
