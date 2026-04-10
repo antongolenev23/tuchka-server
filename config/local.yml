@@ -1,5 +1,5 @@
 env: "local" #local, dev, prod
-storage_path: "./test_files_storage"
+storage_dir: "./test_storage_dir"
 http_server:
   address: "localhost:8080"
   request_read_timeout: 5s
