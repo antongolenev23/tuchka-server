@@ -12,17 +12,23 @@ import (
 )
 
 type Config struct {
-	Env           string           `yaml:"env" env-required:"true"`
-	StorageDir   string           `yaml:"storage_dir" env-default:"/var/lib/tuchka-server"`
-	HTTPServerCfg HTTPServerConfig `yaml:"http_server"`
-	DatabaseDSN   string           `env:"DATABASE_DSN" env-required:"true"`
+	Env         string           `yaml:"env" env-required:"true"`
+	DatabaseDSN string           `env:"DATABASE_DSN" env-required:"true"`
+	HTTPServer  HTTPServerConfig `yaml:"http_server"`
+	Files FilesConfig            `yaml:"files"`
 }
 
 type HTTPServerConfig struct {
-	Address             string        `yaml:"address" env-required:"true"`
-	RequestReadTimeout  time.Duration `yaml:"request_read_timeout" env-required:"true"`
-	ResponceReadTimeout time.Duration `yaml:"responce_write_timeout" env-required:"true"`
-	IdleTimeout         time.Duration `yaml:"idle_timeout" env-required:"true"`
+	Address              string        `yaml:"address" env-required:"true"`
+	RequestReadTimeout   time.Duration `yaml:"request_read_timeout" env-required:"true"`
+	ResponseWriteTimeout time.Duration `yaml:"response_write_timeout" env-required:"true"`
+	IdleTimeout          time.Duration `yaml:"idle_timeout" env-required:"true"`
+}
+
+type FilesConfig struct {
+	StorageDir  string           `yaml:"storage_dir" env-default:"/var/lib/tuchka-server"`
+	MaxDownload int  	         `yaml:"max_download" env-default:"30"`
+	MaxDelete int  	         `yaml:"max_delete" env-default:"60"`
 }
 
 func MustLoad() *Config {
@@ -43,17 +49,17 @@ func MustLoad() *Config {
 		log.Fatalf("config(%s) read error: %s", configPath, err)
 	}
 
-	err := checkStorageDir(cfg.StorageDir)
-	if err != nil{
-		log.Fatalf("check storage path %s failed: %s", cfg.StorageDir, err)
+	err := checkStorageDir(cfg.Files.StorageDir)
+	if err != nil {
+		log.Fatalf("check storage path %s failed: %s", cfg.Files.StorageDir, err)
 	}
 
 	return cfg
 }
 
-func checkStorageDir(path string) error{
+func checkStorageDir(path string) error {
 	info, err := os.Stat(path)
-	if err != nil{
+	if err != nil {
 		if os.IsNotExist(err) {
 			return errors.New("storage dir does not exist")
 		}
@@ -65,7 +71,7 @@ func checkStorageDir(path string) error{
 	}
 
 	tempPath := filepath.Join(path, ".temp_file")
-	if err = os.WriteFile(tempPath, []byte("temp"), 0644); err != nil{
+	if err = os.WriteFile(tempPath, []byte("temp"), 0644); err != nil {
 		return errors.New("storage path is not writable")
 	}
 	os.Remove(tempPath)

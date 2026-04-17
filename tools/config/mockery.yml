@@ -1,0 +1,13 @@
+packages:
+  github.com/antongolenev23/tuchka-server/internal/repository:
+    config:
+      dir: internal/repository
+      filename: "mock_{{.InterfaceName | snakecase}}.go"
+    interfaces:
+      Repository:
+  github.com/antongolenev23/tuchka-server/internal/storage:
+    config:
+      dir: internal/storage
+      filename: "mock_{{.InterfaceName | snakecase}}.go"
+    interfaces:
+      Storage:

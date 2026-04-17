@@ -1,31 +1,52 @@
 package main
 
 import (
+	"log/slog"
+	"net/http"
 	"os"
 
 	"github.com/antongolenev23/tuchka-server/internal/config"
-	"github.com/antongolenev23/tuchka-server/internal/storage/disk"
 	"github.com/antongolenev23/tuchka-server/internal/http-server/handler"
 	"github.com/antongolenev23/tuchka-server/internal/http-server/router"
-	"github.com/antongolenev23/tuchka-server/pkg/logger"
 	"github.com/antongolenev23/tuchka-server/internal/repository/postgres"
 	"github.com/antongolenev23/tuchka-server/internal/service"
+	"github.com/antongolenev23/tuchka-server/internal/storage/disk"
+	"github.com/antongolenev23/tuchka-server/pkg/logger"
 )
 
 func main() {
 	cfg := config.MustLoad()
-	logger := logger.MustInit(cfg.Env)
+	log := logger.MustInit(cfg.Env)
+
+	log.Info("starting tuchka-server", slog.String("env", cfg.Env))
+	log.Debug("debug messages are enabled")
 
 	repo, err := postgres.New(cfg.DatabaseDSN)
 	if err != nil {
-		logger.Error("failed to init repository", "error", err)
+		log.Error("failed to init repository", "error", err)
 		os.Exit(1)
 	}
 
 	storage := disk.New(cfg)
-	service := service.New(repo, storage, logger, cfg)
-	handler := handler.New(service, logger, cfg)
+	service := service.New(repo, storage)
+	handler := handler.New(service, log, cfg)
 
-	r := router.New(handler, logger)
-	_ = r
+	r := router.New(handler, log)
+
+	srv := &http.Server{
+		Addr:         cfg.HTTPServer.Address,
+		Handler:      r,
+		ReadTimeout:  cfg.HTTPServer.RequestReadTimeout,
+		WriteTimeout: cfg.HTTPServer.ResponseWriteTimeout,
+		IdleTimeout:  cfg.HTTPServer.IdleTimeout,
+	}
+
+	log.Info("starting server", slog.String("address", cfg.HTTPServer.Address))
+	if err := srv.ListenAndServe(); err != nil {
+		log.Error("failed to start server",
+			slog.String("error", err.Error()),
+		)
+	}
+
+	log.Error("server stopped")
 }

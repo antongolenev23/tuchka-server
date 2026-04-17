@@ -1,31 +1,31 @@
 package file
 
-import(
+import (
 	"io"
 )
 
-type MetaInfo struct {
-	Name string
-	Path string
-	Size int64
-}
-
-type UploadFile struct {
+type File struct {
 	Name string
 	Size int64
 	Data io.ReadCloser
 }
 
-type UploadResult struct {
+type FilePath struct {
+	Name string
+	Path string
+}
+type Result struct {
 	Success []string
 	Errors  map[string]string
 }
 
-func (u *UploadResult) AddSuccess(fileName string) {
+func (u *Result) AddSuccess(fileName string) {
 	u.Success = append(u.Success, fileName)
 }
 
-func (u *UploadResult) AddError(fileName string, errStr string) {
+func (u *Result) AddError(fileName string, errStr string) {
+	if u.Errors == nil {
+		u.Errors = make(map[string]string)
+	}
 	u.Errors[fileName] = errStr
 }
-

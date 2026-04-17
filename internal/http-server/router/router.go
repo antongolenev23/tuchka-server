@@ -16,5 +16,10 @@ func New(handler *handler.Handler, logger *slog.Logger) *chi.Mux {
 	r.Use(mw.New(logger))
 	r.Use(chimw.Recoverer)
 
+	r.Post("/upload", handler.Upload())
+	r.Get("/files", handler.Files())
+	r.Post("/download", handler.Download())
+	r.Post("/delete", handler.Delete())
+
 	return r
 }
