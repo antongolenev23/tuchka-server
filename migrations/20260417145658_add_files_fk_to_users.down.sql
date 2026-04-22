@@ -1,0 +1,3 @@
+ALTER TABLE files DROP CONSTRAINT IF EXISTS fk_files_user;
+ALTER TABLE files DROP COLUMN IF EXISTS user_id;
+DROP INDEX IF EXISTS idx_files_user_id_name;

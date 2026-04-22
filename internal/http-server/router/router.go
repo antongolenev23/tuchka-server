@@ -6,20 +6,28 @@ import (
 	"github.com/go-chi/chi/v5"
 	chimw "github.com/go-chi/chi/v5/middleware"
 
+	"github.com/antongolenev23/tuchka-server/internal/config"
 	"github.com/antongolenev23/tuchka-server/internal/http-server/handler"
 	mw "github.com/antongolenev23/tuchka-server/internal/http-server/middleware"
 )
 
-func New(handler *handler.Handler, logger *slog.Logger) *chi.Mux {
+func New(handler *handler.Handler, cfg *config.Config, log *slog.Logger) *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(chimw.RequestID)
-	r.Use(mw.New(logger))
+	r.Use(mw.LoggerMiddleware(log))
 	r.Use(chimw.Recoverer)
 
-	r.Post("/upload", handler.Upload())
-	r.Get("/files", handler.Files())
-	r.Post("/download", handler.Download())
-	r.Post("/delete", handler.Delete())
+	r.Post("/auth/register", handler.Register())
+	r.Post("/auth/login", handler.Login())
+
+	r.Route("/files", func(r chi.Router) {
+		r.Use(mw.AuthMiddleware(cfg, log))
+
+		r.Post("/upload", handler.Upload())
+		r.Get("/", handler.Files())
+		r.Post("/download", handler.Download())
+		r.Post("/delete", handler.Delete())
+	})
 
 	return r
 }

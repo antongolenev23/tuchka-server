@@ -5,10 +5,11 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/antongolenev23/tuchka-server/internal/file"
+	"github.com/antongolenev23/tuchka-server/internal/entity"
 	"github.com/antongolenev23/tuchka-server/internal/http-server/handler/dto"
 	"github.com/antongolenev23/tuchka-server/internal/repository"
 	"github.com/antongolenev23/tuchka-server/internal/repository/model"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgconn"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
@@ -17,7 +18,7 @@ type PostgresRepository struct {
 	db *sql.DB
 }
 
-func New(storagePath string) (*PostgresRepository, error) {
+func New(storagePath string) (repository.Repository, error) {
 	const op = "repository.postgres.New"
 
 	db, err := sql.Open("pgx", storagePath)
@@ -32,12 +33,48 @@ func New(storagePath string) (*PostgresRepository, error) {
 	return &PostgresRepository{db: db}, nil
 }
 
-func (s *PostgresRepository) SaveFileMetadata(info model.MetadataInput) error {
+func (p *PostgresRepository) Create(user entity.User) (uuid.UUID, error) {
+	const op = "repository.postgres.Create"
+
+	query := `
+		INSERT INTO users (email, password_hash)
+		VALUES ($1, $2)
+		RETURNING id
+		`
+	var id uuid.UUID
+
+	err := p.db.QueryRow(query, user.Email, user.PasswordHash).Scan(&id)
+	if err != nil {
+		return id, fmt.Errorf("%s: %w", op, err)
+	}
+	return id, nil
+}
+
+func (p *PostgresRepository) GetByEmail(email string) (entity.User, error) {
+	const op = "repository.postgres.GetByEmail"
+
+	var user entity.User
+	query := `SELECT id, email, password_hash FROM users WHERE email = $1`
+
+	err := p.db.QueryRow(query, email).Scan(
+		&user.ID, &user.Email, &user.PasswordHash,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return user, repository.ErrUserNotFound
+		}
+		return user, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return user, nil
+}
+
+func (p *PostgresRepository) SaveFileMetadata(info model.MetadataInput) error {
 	const op = "repository.postgres.SaveFileMetadata"
 
-	query := `INSERT INTO files(name, path, size) VALUES($1, $2, $3)`
+	query := `INSERT INTO files(name, path, size, user_id) VALUES($1, $2, $3, $4)`
 
-	_, err := s.db.Exec(query, info.Name, info.Path, info.Size)
+	_, err := p.db.Exec(query, info.Name, info.Path, info.Size, info.UserID)
 	if err != nil {
 		var pgError *pgconn.PgError
 		if errors.As(err, &pgError) {
@@ -51,16 +88,17 @@ func (s *PostgresRepository) SaveFileMetadata(info model.MetadataInput) error {
 	return nil
 }
 
-func (s *PostgresRepository) GetFilesMetadata() ([]dto.MetadataOutput, error) {
+func (p *PostgresRepository) GetFilesMetadata(userID uuid.UUID) ([]dto.MetadataOutput, error) {
 	const op = "repository.postgres.GetFileMetadata"
 
 	query := `
 		SELECT name, size, created_at
 		FROM files
+		WHERE user_id = $1
 		ORDER BY created_at DESC
 	`
 
-	rows, err := s.db.Query(query)
+	rows, err := p.db.Query(query, userID)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
@@ -91,23 +129,27 @@ func (s *PostgresRepository) GetFilesMetadata() ([]dto.MetadataOutput, error) {
 	return allMetadata, nil
 }
 
-func (s *PostgresRepository) GetFilePaths(downloadReq dto.FilesList) ([]file.FilePath, error) {
+func (p *PostgresRepository) GetFilePaths(downloadReq dto.FilesList, userID uuid.UUID) ([]entity.FilePath, error) {
 	const op = "repository.postgres.GetFilePaths"
 
-	query := `SELECT name, path FROM files WHERE name = $1`
+	query := `
+		SELECT name, path 
+		FROM files 
+		WHERE user_id = $1 AND name = $2 
+	`
 
-	var files []file.FilePath
+	var files []entity.FilePath
 
-	stmt, err := s.db.Prepare(query)
+	stmt, err := p.db.Prepare(query)
     if err != nil {
         return nil, fmt.Errorf("%s: %w", op, err)
     }
     defer stmt.Close()
 
 	for _, name := range downloadReq.Files {
-        var f file.FilePath
+        var f entity.FilePath
         
-        err := stmt.QueryRow(name).Scan(&f.Name, &f.Path)
+        err := stmt.QueryRow(userID, name).Scan(&f.Name, &f.Path)
         if err != nil {
             if errors.Is(err, sql.ErrNoRows) {
                 return nil, fmt.Errorf("%s: %w", op, repository.ErrMetadataNotFound)
@@ -121,12 +163,12 @@ func (s *PostgresRepository) GetFilePaths(downloadReq dto.FilesList) ([]file.Fil
 	return files, nil
 }
 
-func (s *PostgresRepository) DeleteFileMetadata(name string) error {
+func (p *PostgresRepository) DeleteFileMetadata(name string, userID uuid.UUID) error {
     const op = "repository.postgres.DeleteFileMetadata"
 
-    query := `DELETE FROM files WHERE name = $1`
+    query := `DELETE FROM files WHERE user_id = $1 AND name = $2`
 
-    _, err := s.db.Exec(query, name)
+    _, err := p.db.Exec(query, userID, name)
     if err != nil {
         return fmt.Errorf("%s: %w", op, err)
     }
@@ -134,13 +176,13 @@ func (s *PostgresRepository) DeleteFileMetadata(name string) error {
     return nil
 }
 
-func (s *PostgresRepository) GetFilePath(name string) (string, error) {
+func (p *PostgresRepository) GetFilePath(name string, userID uuid.UUID) (string, error) {
     const op = "repository.postgres.GetFilePath"
 
-    query := `SELECT path FROM files WHERE name = $1`
+    query := `SELECT path FROM files WHERE user_id = $1 AND name = $2`
 
     var path string
-    err := s.db.QueryRow(query, name).Scan(&path)
+    err := p.db.QueryRow(query, userID, name).Scan(&path)
     if err != nil {
         if errors.Is(err, sql.ErrNoRows) {
 			return "", fmt.Errorf("%s: %w", op, repository.ErrMetadataNotFound)

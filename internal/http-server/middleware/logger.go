@@ -8,10 +8,10 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-func New(logger *slog.Logger) func(next http.Handler) http.Handler {
+func LoggerMiddleware(log *slog.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
-			entry := logger.With(
+			entry := log.With(
 				slog.String("method", r.Method),
 				slog.String("path", r.URL.Path),
 				slog.String("remote_addr", r.RemoteAddr),

@@ -9,8 +9,9 @@ import (
 	"path/filepath"
 
 	"github.com/antongolenev23/tuchka-server/internal/config"
-	"github.com/antongolenev23/tuchka-server/internal/file"
+	"github.com/antongolenev23/tuchka-server/internal/entity"
 	"github.com/antongolenev23/tuchka-server/internal/storage"
+	"github.com/google/uuid"
 )
 
 type DiskStorage struct {
@@ -23,15 +24,21 @@ func New(cfg *config.Config) *DiskStorage {
 	}
 }
 
-func (s *DiskStorage) Save(fileName string, r io.Reader) (string, int64, error) {
+func (s *DiskStorage) Save(fileName string, userID uuid.UUID, r io.Reader) (string, int64, error) {
 	const op = "storage.disk.Save"
 
-	dstPath := filepath.Join(s.Cfg.Files.StorageDir, fileName)
+	userSubDirectoryName := userID.String()
+	userDirPath := filepath.Join(s.Cfg.Files.StorageDir, userSubDirectoryName)
+	dstPath := filepath.Join(s.Cfg.Files.StorageDir, userSubDirectoryName, fileName)
 
 	if _, err := os.Stat(dstPath); err == nil {
 		return "", 0, fmt.Errorf("%s: %w", op, storage.ErrFileAlreadyExists)
 	} else if !os.IsNotExist(err) {
 		return "", 0, fmt.Errorf("%s: %w", op, err)
+	}
+
+	if err := os.MkdirAll(userDirPath, 0700); err != nil {
+    	return "", 0, fmt.Errorf("%s: %w", op, err)
 	}
 
 	outFile, err := os.Create(dstPath)
@@ -60,7 +67,7 @@ func (s *DiskStorage) Remove(path string) error {
 	return nil
 }
 
-func (s *DiskStorage) WriteZIP(w io.Writer, files []file.FilePath) error {
+func (s *DiskStorage) WriteZIP(w io.Writer, files []entity.FilePath) error {
 	const op = "storage.disk.WriteZIP"
 
 	zipWriter := zip.NewWriter(w)

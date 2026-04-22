@@ -28,10 +28,10 @@ func main() {
 	}
 
 	storage := disk.New(cfg)
-	service := service.New(repo, storage)
-	handler := handler.New(service, log, cfg)
+	service := service.New(repo, storage, cfg)
+	handler := handler.New(service, cfg, log)
 
-	r := router.New(handler, log)
+	r := router.New(handler, cfg, log)
 
 	srv := &http.Server{
 		Addr:         cfg.HTTPServer.Address,

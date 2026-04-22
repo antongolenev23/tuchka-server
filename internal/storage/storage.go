@@ -4,7 +4,8 @@ import (
 	"errors"
 	"io"
 
-	"github.com/antongolenev23/tuchka-server/internal/file"
+	"github.com/antongolenev23/tuchka-server/internal/entity"
+	"github.com/google/uuid"
 )
 
 var(
@@ -13,7 +14,7 @@ var(
 )
 
 type Storage interface {
-	Save(fileName string, r io.Reader) (path string, size int64, err error)
+	Save(fileName string, userID uuid.UUID, r io.Reader) (path string, size int64, err error)
 	Remove(path string) error
-	WriteZIP(w io.Writer, files []file.FilePath) error
+	WriteZIP(w io.Writer, files []entity.FilePath) error
 }

@@ -15,6 +15,7 @@ type Config struct {
 	Env         string           `yaml:"env" env-required:"true"`
 	DatabaseDSN string           `env:"DATABASE_DSN" env-required:"true"`
 	HTTPServer  HTTPServerConfig `yaml:"http_server"`
+	Auth AuthConfig 
 	Files FilesConfig            `yaml:"files"`
 }
 
@@ -23,6 +24,11 @@ type HTTPServerConfig struct {
 	RequestReadTimeout   time.Duration `yaml:"request_read_timeout" env-required:"true"`
 	ResponseWriteTimeout time.Duration `yaml:"response_write_timeout" env-required:"true"`
 	IdleTimeout          time.Duration `yaml:"idle_timeout" env-required:"true"`
+}
+
+type AuthConfig struct {
+	JWTSecret string       `env:"JWT_SECRET" env-required:"true"`
+	JWTExpirationHours int `env:"JWT_EXPIRATION_HOURS" env-required:"true"`
 }
 
 type FilesConfig struct {

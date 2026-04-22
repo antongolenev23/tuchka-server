@@ -7,9 +7,11 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/antongolenev23/tuchka-server/internal/file"
+	"github.com/antongolenev23/tuchka-server/internal/config"
+	"github.com/antongolenev23/tuchka-server/internal/entity"
+	"github.com/antongolenev23/tuchka-server/internal/mocks"
 	"github.com/antongolenev23/tuchka-server/internal/repository"
-	"github.com/antongolenev23/tuchka-server/internal/storage"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -22,14 +24,14 @@ type repositoryWant struct {
 }
 
 type got struct {
-	files []file.File
+	files []entity.File
 }
 
 type want struct {
 	storage      storageWant
 	repo         repositoryWant
 	removeCalls  []bool
-	uploadResult file.Result
+	uploadResult entity.OperationResult
 }
 
 func TestUpload(t *testing.T) {
@@ -41,7 +43,7 @@ func TestUpload(t *testing.T) {
 		{
 			name: "correct files saving",
 			got: got{
-				files: []file.File{
+				files: []entity.File{
 					{Name: "file1.txt"},
 					{Name: "file2.txt"},
 				},
@@ -54,7 +56,7 @@ func TestUpload(t *testing.T) {
 					errors: []error{nil, nil},
 				},
 				removeCalls: []bool{false, false},
-				uploadResult: file.Result{
+				uploadResult: entity.OperationResult{
 					Success: []string{"file1.txt", "file2.txt"},
 					Errors:  nil,
 				},
@@ -63,7 +65,7 @@ func TestUpload(t *testing.T) {
 		{
 			name: "storage and repository errors while file saving",
 			got: got{
-				files: []file.File{
+				files: []entity.File{
 					{Name: "file1.txt"},
 					{Name: "file2.txt"},
 					{Name: "file3.txt"},
@@ -77,11 +79,11 @@ func TestUpload(t *testing.T) {
 					errors: []error{nil, errors.New("repository error"), repository.ErrMetadataAlreadyExists},
 				},
 				removeCalls: []bool{false, true, true},
-				uploadResult: file.Result{
+				uploadResult: entity.OperationResult{
 					Success: nil,
 					Errors: map[string]string{
-						"file1.txt": "internal server error",
-						"file2.txt": "internal server error",
+						"file1.txt": "failed to save file",
+						"file2.txt": "failed to save file",
 						"file3.txt": "file already exists",
 					},
 				},
@@ -90,10 +92,10 @@ func TestUpload(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockStorage := storage.NewMockStorage(t)
+			mockStorage := mocks.NewMockStorage(t)
 			for i := 0; i < len(tt.got.files); i++ {
 				mockStorage.EXPECT().
-					Save(tt.got.files[i].Name, mock.Anything).
+					Save(tt.got.files[i].Name, mock.Anything, mock.Anything).
 					Return("", 0, tt.want.storage.errors[i]).
 					Once()
 
@@ -105,7 +107,7 @@ func TestUpload(t *testing.T) {
 				}
 			}
 
-			mockRepository := repository.NewMockRepository(t)
+			mockRepository := mocks.NewMockRepository(t)
 			for i := 0; i < len(tt.got.files); i++ {
 				if tt.want.storage.errors[i] == nil {
 					mockRepository.EXPECT().
@@ -117,10 +119,13 @@ func TestUpload(t *testing.T) {
 
 			log := slog.New(slog.DiscardHandler)
 
-			service := New(mockRepository, mockStorage)
+			cfg := &config.Config{}
+			service := New(mockRepository, mockStorage, cfg)
 
-			var result file.Result
-			service.Upload(tt.got.files, &result, log)
+			mockUserID := uuid.New()
+
+			var result entity.OperationResult
+			service.Upload(tt.got.files, &result, mockUserID, log)
 
 			if !equalUploadResult(result, tt.want.uploadResult) {
 				t.Fatalf("results not equal. Expected: %v, Got: %v", tt.want.uploadResult, result)
@@ -129,7 +134,7 @@ func TestUpload(t *testing.T) {
 	}
 }
 
-func equalUploadResult(a, b file.Result) bool {
+func equalUploadResult(a, b entity.OperationResult) bool {
 	if !slices.Equal(a.Success, b.Success) {
 		return false
 	}
