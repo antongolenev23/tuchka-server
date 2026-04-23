@@ -8,9 +8,9 @@ import (
 	"github.com/google/uuid"
 )
 
-var(
+var (
 	ErrFileAlreadyExists = errors.New("file already exists")
-	ErrFileNotFound = errors.New("file not found")
+	ErrFileNotFound      = errors.New("file not found")
 )
 
 type Storage interface {

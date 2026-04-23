@@ -18,8 +18,8 @@ func GenerateToken(userID uuid.UUID, cfg *config.Config) (string, error) {
 		UserID: userID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(cfg.Auth.JWTExpirationHours) * time.Hour)),
-			IssuedAt: jwt.NewNumericDate(time.Now()),
-			Issuer: "tuchka",
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			Issuer:    "tuchka",
 		},
 	}
 

@@ -11,8 +11,8 @@ import (
 
 var (
 	ErrMetadataAlreadyExists = errors.New("metadata already exists")
-	ErrMetadataNotFound = errors.New("metadata not found")
-	ErrUserNotFound = errors.New("user not found")
+	ErrMetadataNotFound      = errors.New("metadata not found")
+	ErrUserNotFound          = errors.New("user not found")
 )
 
 const (

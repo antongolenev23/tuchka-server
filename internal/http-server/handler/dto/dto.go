@@ -7,23 +7,23 @@ import (
 )
 
 type MetadataOutput struct {
-	Name string `json:"name"`
-	Size int64 `json:"size"`
+	Name      string          `json:"name"`
+	Size      int64           `json:"size"`
 	CreatedAt types.HumanTime `json:"created_at"`
 }
 
 type AuthRequest struct {
-    Email    string `json:"email"`
-    Password string `json:"password"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 type AuthResponse struct {
-	Email string       `json:"email"`
-	Token string       `json:"token"`
+	Email string `json:"email"`
+	Token string `json:"token"`
 }
 
 type FilesList struct {
-    Files []string `json:"files"`
+	Files []string `json:"files"`
 }
 
 type FileUploadResult struct {

@@ -22,11 +22,11 @@ const UserIDKey contextKey = "userID"
 func AuthMiddleware(cfg *config.Config, log *slog.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		const op = "middleware.auth"
-		
+
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			log.With(
-	            slog.String("op", op),
-				slog.String("request_id", middleware.GetReqID(r.Context())),		
+				slog.String("op", op),
+				slog.String("request_id", middleware.GetReqID(r.Context())),
 			)
 
 			authHeader := r.Header.Get("Authorization")
@@ -72,4 +72,3 @@ func AuthMiddleware(cfg *config.Config, log *slog.Logger) func(http.Handler) htt
 		})
 	}
 }
-

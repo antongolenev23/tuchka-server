@@ -15,8 +15,8 @@ type Config struct {
 	Env         string           `yaml:"env" env-required:"true"`
 	DatabaseDSN string           `env:"DATABASE_DSN" env-required:"true"`
 	HTTPServer  HTTPServerConfig `yaml:"http_server"`
-	Auth AuthConfig 
-	Files FilesConfig            `yaml:"files"`
+	Auth        AuthConfig
+	Files       FilesConfig `yaml:"files"`
 }
 
 type HTTPServerConfig struct {
@@ -27,14 +27,14 @@ type HTTPServerConfig struct {
 }
 
 type AuthConfig struct {
-	JWTSecret string       `env:"JWT_SECRET" env-required:"true"`
-	JWTExpirationHours int `env:"JWT_EXPIRATION_HOURS" env-required:"true"`
+	JWTSecret          string `env:"JWT_SECRET" env-required:"true"`
+	JWTExpirationHours int    `env:"JWT_EXPIRATION_HOURS" env-required:"true"`
 }
 
 type FilesConfig struct {
-	StorageDir  string           `yaml:"storage_dir" env-default:"/var/lib/tuchka-server"`
-	MaxDownload int  	         `yaml:"max_download" env-default:"30"`
-	MaxDelete int  	         `yaml:"max_delete" env-default:"60"`
+	StorageDir  string `yaml:"storage_dir" env-default:"/var/lib/tuchka-server"`
+	MaxDownload int    `yaml:"max_download" env-default:"30"`
+	MaxDelete   int    `yaml:"max_delete" env-default:"60"`
 }
 
 func MustLoad() *Config {

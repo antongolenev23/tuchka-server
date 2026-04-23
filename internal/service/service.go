@@ -18,18 +18,18 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const(
-	fileAlreadyExists = "file already exists"
-	fileNotFound = "file not found"
-	failedToSaveFile = "failed to save file"
+const (
+	fileAlreadyExists  = "file already exists"
+	fileNotFound       = "file not found"
+	failedToSaveFile   = "failed to save file"
 	failedToDeleteFile = "failed to delete file"
 )
 
-var(
-	ErrNotAllFilesExist = errors.New("not all files exist")
+var (
+	ErrNotAllFilesExist  = errors.New("not all files exist")
 	ErrUserAlreadyExists = errors.New("user already exists")
-	ErrUserNotExists = errors.New("user not exists")
-	ErrInvalidPassword = errors.New("invalid password")
+	ErrUserNotExists     = errors.New("user not exists")
+	ErrInvalidPassword   = errors.New("invalid password")
 )
 
 type Service interface {
@@ -44,14 +44,14 @@ type Service interface {
 type service struct {
 	repo    repository.Repository
 	storage storage.Storage
-	cfg *config.Config
+	cfg     *config.Config
 }
 
 func New(repo repository.Repository, storage storage.Storage, cfg *config.Config) Service {
 	return &service{
 		repo:    repo,
 		storage: storage,
-		cfg: cfg,
+		cfg:     cfg,
 	}
 }
 
@@ -133,11 +133,11 @@ func (s *service) Upload(files []entity.File, result *entity.OperationResult, us
 			}
 			continue
 		}
-		
+
 		metadata := model.MetadataInput{
-			Name: safeName,
-			Path: path,
-			Size: size,
+			Name:   safeName,
+			Path:   path,
+			Size:   size,
 			UserID: userID,
 		}
 
@@ -172,14 +172,13 @@ func (s *service) Upload(files []entity.File, result *entity.OperationResult, us
 func (s *service) GetSavedFilesInfo(userID uuid.UUID) ([]dto.MetadataOutput, error) {
 	const op = "service.GetSavedFilesInfo"
 
-	output, err := s.repo.GetFilesMetadata(userID);
+	output, err := s.repo.GetFilesMetadata(userID)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	return output, nil
-} 
-
+}
 
 func (s *service) DeleteFiles(req dto.FilesList, userID uuid.UUID, log *slog.Logger) entity.OperationResult {
 	const op = "service.DeleteFiles"
@@ -190,7 +189,7 @@ func (s *service) DeleteFiles(req dto.FilesList, userID uuid.UUID, log *slog.Log
 		filePath, err := s.repo.GetFilePath(name, userID)
 		if err != nil {
 			if errors.Is(err, repository.ErrMetadataNotFound) {
-				log.Info("file metadata not found", 
+				log.Info("file metadata not found",
 					slog.String("filename", name),
 				)
 				result.AddError(name, fileNotFound)
@@ -206,7 +205,7 @@ func (s *service) DeleteFiles(req dto.FilesList, userID uuid.UUID, log *slog.Log
 
 		if err := s.storage.Remove(filePath); err != nil {
 			if errors.Is(err, storage.ErrFileNotFound) {
-				log.Info("file not found", 
+				log.Info("file not found",
 					slog.String("filename", name),
 				)
 				result.AddError(name, fileNotFound)

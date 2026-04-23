@@ -38,7 +38,7 @@ func (s *DiskStorage) Save(fileName string, userID uuid.UUID, r io.Reader) (stri
 	}
 
 	if err := os.MkdirAll(userDirPath, 0700); err != nil {
-    	return "", 0, fmt.Errorf("%s: %w", op, err)
+		return "", 0, fmt.Errorf("%s: %w", op, err)
 	}
 
 	outFile, err := os.Create(dstPath)
@@ -57,7 +57,7 @@ func (s *DiskStorage) Save(fileName string, userID uuid.UUID, r io.Reader) (stri
 
 func (s *DiskStorage) Remove(path string) error {
 	const op = "storage.disk.Remove"
-	if err := os.Remove(path); err != nil{
+	if err := os.Remove(path); err != nil {
 		if os.IsNotExist(err) {
 			return storage.ErrFileNotFound
 		}

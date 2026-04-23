@@ -79,7 +79,7 @@ func (p *PostgresRepository) SaveFileMetadata(info model.MetadataInput) error {
 		var pgError *pgconn.PgError
 		if errors.As(err, &pgError) {
 			if pgError.Code == repository.UniqueViolation {
-				return fmt.Errorf("%s: %w", op, repository.ErrMetadataAlreadyExists) 
+				return fmt.Errorf("%s: %w", op, repository.ErrMetadataAlreadyExists)
 			}
 		}
 		return fmt.Errorf("%s: %w", op, err)
@@ -141,54 +141,54 @@ func (p *PostgresRepository) GetFilePaths(downloadReq dto.FilesList, userID uuid
 	var files []entity.FilePath
 
 	stmt, err := p.db.Prepare(query)
-    if err != nil {
-        return nil, fmt.Errorf("%s: %w", op, err)
-    }
-    defer stmt.Close()
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	defer stmt.Close()
 
 	for _, name := range downloadReq.Files {
-        var f entity.FilePath
-        
-        err := stmt.QueryRow(userID, name).Scan(&f.Name, &f.Path)
-        if err != nil {
-            if errors.Is(err, sql.ErrNoRows) {
-                return nil, fmt.Errorf("%s: %w", op, repository.ErrMetadataNotFound)
-            }
-            return nil, fmt.Errorf("%s: %w", op, err)
-        }
-        
-        files = append(files, f)
-    }
+		var f entity.FilePath
+
+		err := stmt.QueryRow(userID, name).Scan(&f.Name, &f.Path)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return nil, fmt.Errorf("%s: %w", op, repository.ErrMetadataNotFound)
+			}
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+
+		files = append(files, f)
+	}
 
 	return files, nil
 }
 
 func (p *PostgresRepository) DeleteFileMetadata(name string, userID uuid.UUID) error {
-    const op = "repository.postgres.DeleteFileMetadata"
+	const op = "repository.postgres.DeleteFileMetadata"
 
-    query := `DELETE FROM files WHERE user_id = $1 AND name = $2`
+	query := `DELETE FROM files WHERE user_id = $1 AND name = $2`
 
-    _, err := p.db.Exec(query, userID, name)
-    if err != nil {
-        return fmt.Errorf("%s: %w", op, err)
-    }
+	_, err := p.db.Exec(query, userID, name)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
 
-    return nil
+	return nil
 }
 
 func (p *PostgresRepository) GetFilePath(name string, userID uuid.UUID) (string, error) {
-    const op = "repository.postgres.GetFilePath"
+	const op = "repository.postgres.GetFilePath"
 
-    query := `SELECT path FROM files WHERE user_id = $1 AND name = $2`
+	query := `SELECT path FROM files WHERE user_id = $1 AND name = $2`
 
-    var path string
-    err := p.db.QueryRow(query, userID, name).Scan(&path)
-    if err != nil {
-        if errors.Is(err, sql.ErrNoRows) {
+	var path string
+	err := p.db.QueryRow(query, userID, name).Scan(&path)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
 			return "", fmt.Errorf("%s: %w", op, repository.ErrMetadataNotFound)
-        }
-        return "", fmt.Errorf("%s: %w", op, err)
-    }
+		}
+		return "", fmt.Errorf("%s: %w", op, err)
+	}
 
-    return path, nil
+	return path, nil
 }

@@ -10,45 +10,45 @@ import (
 	"github.com/antongolenev23/tuchka-server/internal/config"
 	"github.com/antongolenev23/tuchka-server/internal/entity"
 	"github.com/antongolenev23/tuchka-server/internal/http-server/handler/dto"
+	mw "github.com/antongolenev23/tuchka-server/internal/http-server/middleware"
 	"github.com/antongolenev23/tuchka-server/internal/service"
 	resp "github.com/antongolenev23/tuchka-server/pkg/api/response"
-	mw "github.com/antongolenev23/tuchka-server/internal/http-server/middleware"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
 )
 
-const(
+const (
 	invalidRequestBody = "invalid request body"
-	couldNotParseFile = "could no parse file"
-	notAllFilesFound = "not all files found"
-	userAlreadyExists = "user already exists"
-	userNotExists = "user not exists"
+	couldNotParseFile  = "could no parse file"
+	notAllFilesFound   = "not all files found"
+	userAlreadyExists  = "user already exists"
+	userNotExists      = "user not exists"
 )
 
-var(
+var (
 	ErrNoFilesFound = errors.New("request body contains no files")
 )
 
-type ErrTooManyFiles struct{
+type ErrTooManyFiles struct {
 	MaxFiles int
 }
 
-func(e ErrTooManyFiles) Error() string {
+func (e ErrTooManyFiles) Error() string {
 	return fmt.Sprintf("too many files. maximum %d", e.MaxFiles)
 }
 
 type Handler struct {
 	service service.Service
-	log  *slog.Logger
+	log     *slog.Logger
 	cfg     *config.Config
 }
 
 func New(service service.Service, cfg *config.Config, log *slog.Logger) *Handler {
 	return &Handler{
 		service: service,
-		log:  log,
-		cfg: cfg,
+		log:     log,
+		cfg:     cfg,
 	}
 }
 
@@ -61,9 +61,8 @@ func (h *Handler) Register() http.HandlerFunc {
 			slog.String("request_id", middleware.GetReqID(r.Context())),
 		)
 
-		r.Body = http.MaxBytesReader(w, r.Body, 4 * 1024) // 4 KB
+		r.Body = http.MaxBytesReader(w, r.Body, 4*1024) // 4 KB
 		defer r.Body.Close()
-
 
 		var req dto.AuthRequest
 		if err := render.DecodeJSON(r.Body, &req); err != nil {
@@ -111,7 +110,7 @@ func (h *Handler) Login() http.HandlerFunc {
 			slog.String("request_id", middleware.GetReqID(r.Context())),
 		)
 
-		r.Body = http.MaxBytesReader(w, r.Body, 4 * 1024) // 4 KB
+		r.Body = http.MaxBytesReader(w, r.Body, 4*1024) // 4 KB
 		defer r.Body.Close()
 
 		var req dto.AuthRequest
@@ -152,7 +151,7 @@ func (h *Handler) Login() http.HandlerFunc {
 }
 
 func (h *Handler) Upload() http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {		
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		const op = "handler.Upload"
 
 		log := h.log.With(
@@ -262,7 +261,7 @@ func closeFiles(files []entity.File, log *slog.Logger) {
 
 func (h *Handler) Files() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		const op = "handler.Files" 
+		const op = "handler.Files"
 
 		log := h.log.With(
 			slog.String("op", op),
@@ -278,7 +277,7 @@ func (h *Handler) Files() http.HandlerFunc {
 		}
 
 		metadata, err := h.service.GetSavedFilesInfo(userID)
-		if err != nil{
+		if err != nil {
 			log.Error("failed to get saved files info",
 				slog.String("error", err.Error()),
 			)
@@ -350,28 +349,27 @@ func (h *Handler) Download() http.HandlerFunc {
 }
 
 func (h *Handler) validateDownloadRequest(req *dto.FilesList) error {
-    if len(req.Files) == 0 {
-        return ErrNoFilesFound
-    }
+	if len(req.Files) == 0 {
+		return ErrNoFilesFound
+	}
 
 	maxDownload := h.cfg.Files.MaxDownload
-    
-    if len(req.Files) > maxDownload {
-        return ErrTooManyFiles{MaxFiles: maxDownload}
-    }
+
+	if len(req.Files) > maxDownload {
+		return ErrTooManyFiles{MaxFiles: maxDownload}
+	}
 
 	return nil
 }
 
-
 func (h *Handler) Delete() http.HandlerFunc {
-    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        const op = "handler.Delete"
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		const op = "handler.Delete"
 
-        log := h.log.With(
-            slog.String("op", op),
-            slog.String("request_id", middleware.GetReqID(r.Context())),
-        )
+		log := h.log.With(
+			slog.String("op", op),
+			slog.String("request_id", middleware.GetReqID(r.Context())),
+		)
 
 		userID, ok := getUserID(r)
 		if !ok {
@@ -381,60 +379,60 @@ func (h *Handler) Delete() http.HandlerFunc {
 			return
 		}
 
-        r.Body = http.MaxBytesReader(w, r.Body, 1*1024*1024) // 1 MB
+		r.Body = http.MaxBytesReader(w, r.Body, 1*1024*1024) // 1 MB
 
-        var req dto.FilesList
-        if err := render.DecodeJSON(r.Body, &req); err != nil {
-            log.Info("failed to decode JSON",
-                slog.String("error", err.Error()),
-            )
-            render.Status(r, http.StatusBadRequest)
-            render.JSON(w, r, resp.Error(invalidRequestBody))
-            return
-        }
+		var req dto.FilesList
+		if err := render.DecodeJSON(r.Body, &req); err != nil {
+			log.Info("failed to decode JSON",
+				slog.String("error", err.Error()),
+			)
+			render.Status(r, http.StatusBadRequest)
+			render.JSON(w, r, resp.Error(invalidRequestBody))
+			return
+		}
 
-        if err := h.validateDeleteRequest(&req); err != nil {
-            log.Info("validation failed",
-                slog.String("error", err.Error()),
-            )
-            render.Status(r, http.StatusBadRequest)
-            render.JSON(w, r, resp.Error(err.Error()))
-            return
-        }
+		if err := h.validateDeleteRequest(&req); err != nil {
+			log.Info("validation failed",
+				slog.String("error", err.Error()),
+			)
+			render.Status(r, http.StatusBadRequest)
+			render.JSON(w, r, resp.Error(err.Error()))
+			return
+		}
 
-        log.Info("request decoded",
-            slog.Int("files_count", len(req.Files)),
-        )
+		log.Info("request decoded",
+			slog.Int("files_count", len(req.Files)),
+		)
 
-        result := h.service.DeleteFiles(req, userID, log)
+		result := h.service.DeleteFiles(req, userID, log)
 
-        if len(result.Errors) > 0 {
-            render.Status(r, http.StatusMultiStatus)
-        } else {
-            render.Status(r, http.StatusOK)
-        }
+		if len(result.Errors) > 0 {
+			render.Status(r, http.StatusMultiStatus)
+		} else {
+			render.Status(r, http.StatusOK)
+		}
 
-        log.Info("delete process finished",
-            slog.Int("success_count", len(result.Success)),
-            slog.Int("error_count", len(result.Errors)),
-        )
+		log.Info("delete process finished",
+			slog.Int("success_count", len(result.Success)),
+			slog.Int("error_count", len(result.Errors)),
+		)
 
-        render.JSON(w, r, dto.GetResultDTO(result))
-    })
+		render.JSON(w, r, dto.GetResultDTO(result))
+	})
 }
 
 func (h *Handler) validateDeleteRequest(req *dto.FilesList) error {
-    if len(req.Files) == 0 {
-        return ErrNoFilesFound
-    }
+	if len(req.Files) == 0 {
+		return ErrNoFilesFound
+	}
 
 	maxDelete := h.cfg.Files.MaxDelete
 
-    if len(req.Files) > maxDelete {
-        return ErrTooManyFiles{MaxFiles: maxDelete}
-    }
+	if len(req.Files) > maxDelete {
+		return ErrTooManyFiles{MaxFiles: maxDelete}
+	}
 
-    return nil
+	return nil
 }
 
 func getUserID(r *http.Request) (uuid.UUID, bool) {
