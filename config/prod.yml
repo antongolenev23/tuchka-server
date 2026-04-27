@@ -2,7 +2,7 @@ env: "prod" #local, dev, prod
 database:
   name: "tuchka"
   user: "appuser"
-  sslmode: "enable"
+  sslmode: "disable"
 http_server:
   address: "0.0.0.0:8080"
   request_read_timeout: 5s

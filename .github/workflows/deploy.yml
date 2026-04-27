@@ -1,0 +1,68 @@
+name: Deploy App
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to deploy'
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      HOST: root@135.106.129.161
+      DEPLOY_DIRECTORY: /root/apps/tuchka-server
+      ENV_FILE_PATH: /root/apps/tuchka-server/.env
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.tag }}
+
+      - name: Check if tag exists
+        run: |
+          git fetch --all --tags
+          if ! git tag | grep -q "^${{ github.event.inputs.tag }}$"; then
+            echo "error: Tag '${{ github.event.inputs.tag }}' not found"
+            exit 1
+          fi
+      - name: Install SSH tools
+        run: sudo apt-get install -y ssh rsync
+      
+      - name: Prepare SSH key
+        run: |
+          echo "$DEPLOY_SSH_KEY" > deploy_key.pem
+          chmod 600 deploy_key.pem
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      
+      - name: Create deploy directory
+        run: |
+          ssh -i deploy_key.pem -o StrictHostKeyChecking=no $HOST \
+          "mkdir -p $DEPLOY_DIRECTORY"
+      
+      - name: Sync project to server
+        run: |
+          rsync -avz \
+            -e "ssh -i deploy_key.pem -o StrictHostKeyChecking=no" \
+            --exclude '.git' \
+            ./ $HOST:$DEPLOY_DIRECTORY
+      
+      - name: Create .env file on server
+        run: |
+          ssh -i deploy_key.pem -o StrictHostKeyChecking=no $HOST "\
+          echo 'DB_PASSWORD=${{ secrets.DB_PASSWORD }}' > $ENV_FILE_PATH && \
+          echo 'JWT_SECRET=${{ secrets.JWT_SECRET }}' >> $ENV_FILE_PATH && \
+          echo 'JWT_EXPIRATION_HOURS=${{ secrets.JWT_EXPIRATION_HOURS }}' >> $ENV_FILE_PATH && \
+          echo 'CONFIG_PATH=/tuchka-server/config/prod.yaml' >> $ENV_FILE_PATH \
+          "
+
+      - name: Deploy with Docker Compose
+        run: |
+          ssh -i deploy_key.pem -o StrictHostKeyChecking=no $HOST "\
+            cd $DEPLOY_DIRECTORY && \
+            docker compose down && \
+            docker compose up -d --build \
+          "
