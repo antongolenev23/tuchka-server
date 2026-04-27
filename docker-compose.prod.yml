@@ -1,0 +1,23 @@
+services:
+  app:
+    image: tuchka-app:latest
+    restart: always
+    ports:
+      - "8080:8080"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    volumes:
+      - tuchka_storage:/var/lib/tuchka-server
+
+  db:
+    restart: always
+
+  migrations:
+    restart: "no"
+
+volumes:
+  pgdata:
+  tuchka_storage:

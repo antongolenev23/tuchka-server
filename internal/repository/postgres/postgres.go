@@ -4,7 +4,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
+	"github.com/antongolenev23/tuchka-server/internal/config"
 	"github.com/antongolenev23/tuchka-server/internal/entity"
 	"github.com/antongolenev23/tuchka-server/internal/http-server/handler/dto"
 	"github.com/antongolenev23/tuchka-server/internal/repository"
@@ -18,16 +20,34 @@ type PostgresRepository struct {
 	db *sql.DB
 }
 
-func New(storagePath string) (repository.Repository, error) {
+func New(cfg *config.Config) (repository.Repository, error) {
 	const op = "repository.postgres.New"
 
-	db, err := sql.Open("pgx", storagePath)
+	dsn := fmt.Sprintf(
+		"postgres://%s:%s@db:5432/%s?sslmode=%s",
+		cfg.Database.User,
+		cfg.Database.Password,
+		cfg.Database.Name,
+		cfg.Database.SSLMode,
+	)
+
+	db, err := sql.Open("pgx", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	if err := db.Ping(); err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
+	var pingErr error
+	for i := 0; i < 10; i++ {
+		pingErr = db.Ping()
+		if pingErr == nil {
+			break
+		}
+
+		time.Sleep(2 * time.Second)
+	}
+
+	if pingErr != nil {
+		return nil, fmt.Errorf("%s: failed to connect to DB after retries: %w", op, pingErr)
 	}
 
 	return &PostgresRepository{db: db}, nil

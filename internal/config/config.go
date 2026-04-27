@@ -12,11 +12,18 @@ import (
 )
 
 type Config struct {
-	Env         string           `yaml:"env" env-required:"true"`
-	DatabaseDSN string           `env:"DATABASE_DSN" env-required:"true"`
-	HTTPServer  HTTPServerConfig `yaml:"http_server"`
-	Auth        AuthConfig
-	Files       FilesConfig `yaml:"files"`
+	Env        string           `yaml:"env" env-required:"true"`
+	Database   DatabaseConfig   `yaml:"database"`
+	HTTPServer HTTPServerConfig `yaml:"http_server"`
+	Auth       AuthConfig
+	Files      FilesConfig `yaml:"files"`
+}
+
+type DatabaseConfig struct {
+	Name     string `yaml:"name" env-required:"true"`
+	User     string `yaml:"user" env-required:"true"`
+	Password string `env:"DB_PASSWORD" env-required:"true"`
+	SSLMode  string `yaml:"sslmode" env-required:"true"`
 }
 
 type HTTPServerConfig struct {

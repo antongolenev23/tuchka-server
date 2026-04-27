@@ -21,7 +21,7 @@ func main() {
 	log.Info("starting tuchka-server", slog.String("env", cfg.Env))
 	log.Debug("debug messages are enabled")
 
-	repo, err := postgres.New(cfg.DatabaseDSN)
+	repo, err := postgres.New(cfg)
 	if err != nil {
 		log.Error("failed to init repository", "error", err)
 		os.Exit(1)
