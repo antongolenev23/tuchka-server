@@ -64,5 +64,5 @@ jobs:
           ssh -i deploy_key.pem -o StrictHostKeyChecking=no $HOST "\
             cd $DEPLOY_DIRECTORY && \
             docker compose down && \
-            docker compose up -d --build \
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build \
           "
