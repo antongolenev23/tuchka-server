@@ -16,6 +16,8 @@ services:
     restart: always
 
   migrations:
+    volumes:
+      - ./migrations:/migrations
     restart: "no"
 
 volumes:
