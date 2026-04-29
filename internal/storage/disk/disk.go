@@ -8,10 +8,11 @@ import (
 
 	"path/filepath"
 
+	"github.com/google/uuid"
+
 	"github.com/antongolenev23/tuchka-server/internal/config"
 	"github.com/antongolenev23/tuchka-server/internal/entity"
 	"github.com/antongolenev23/tuchka-server/internal/storage"
-	"github.com/google/uuid"
 )
 
 type DiskStorage struct {

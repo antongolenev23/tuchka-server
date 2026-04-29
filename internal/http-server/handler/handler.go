@@ -7,15 +7,16 @@ import (
 	"mime/multipart"
 	"net/http"
 
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/render"
+	"github.com/google/uuid"
+
 	"github.com/antongolenev23/tuchka-server/internal/config"
 	"github.com/antongolenev23/tuchka-server/internal/entity"
 	"github.com/antongolenev23/tuchka-server/internal/http-server/handler/dto"
 	mw "github.com/antongolenev23/tuchka-server/internal/http-server/middleware"
 	"github.com/antongolenev23/tuchka-server/internal/service"
 	resp "github.com/antongolenev23/tuchka-server/pkg/api/response"
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/render"
-	"github.com/google/uuid"
 )
 
 const (

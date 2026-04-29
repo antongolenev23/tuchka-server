@@ -7,12 +7,13 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/mock"
+
 	"github.com/antongolenev23/tuchka-server/internal/config"
 	"github.com/antongolenev23/tuchka-server/internal/entity"
 	"github.com/antongolenev23/tuchka-server/internal/mocks"
 	"github.com/antongolenev23/tuchka-server/internal/repository"
-	"github.com/google/uuid"
-	"github.com/stretchr/testify/mock"
 )
 
 type storageWant struct {

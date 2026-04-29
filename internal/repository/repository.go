@@ -3,10 +3,11 @@ package repository
 import (
 	"errors"
 
+	"github.com/google/uuid"
+
 	"github.com/antongolenev23/tuchka-server/internal/entity"
 	"github.com/antongolenev23/tuchka-server/internal/http-server/handler/dto"
 	"github.com/antongolenev23/tuchka-server/internal/repository/model"
-	"github.com/google/uuid"
 )
 
 var (

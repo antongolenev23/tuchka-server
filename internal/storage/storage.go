@@ -4,8 +4,9 @@ import (
 	"errors"
 	"io"
 
-	"github.com/antongolenev23/tuchka-server/internal/entity"
 	"github.com/google/uuid"
+
+	"github.com/antongolenev23/tuchka-server/internal/entity"
 )
 
 var (

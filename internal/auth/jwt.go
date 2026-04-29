@@ -3,9 +3,10 @@ package auth
 import (
 	"time"
 
-	"github.com/antongolenev23/tuchka-server/internal/config"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+
+	"github.com/antongolenev23/tuchka-server/internal/config"
 )
 
 type Claims struct {

@@ -6,14 +6,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgconn"
+	_ "github.com/jackc/pgx/v5/stdlib"
+
 	"github.com/antongolenev23/tuchka-server/internal/config"
 	"github.com/antongolenev23/tuchka-server/internal/entity"
 	"github.com/antongolenev23/tuchka-server/internal/http-server/handler/dto"
 	"github.com/antongolenev23/tuchka-server/internal/repository"
 	"github.com/antongolenev23/tuchka-server/internal/repository/model"
-	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgconn"
-	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 type PostgresRepository struct {

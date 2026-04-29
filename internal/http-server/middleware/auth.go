@@ -7,12 +7,13 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/antongolenev23/tuchka-server/internal/auth"
-	"github.com/antongolenev23/tuchka-server/internal/config"
-	resp "github.com/antongolenev23/tuchka-server/pkg/api/response"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/golang-jwt/jwt/v5"
+
+	"github.com/antongolenev23/tuchka-server/internal/auth"
+	"github.com/antongolenev23/tuchka-server/internal/config"
+	resp "github.com/antongolenev23/tuchka-server/pkg/api/response"
 )
 
 type contextKey string

@@ -7,6 +7,9 @@ import (
 	"log/slog"
 	"path/filepath"
 
+	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
+
 	"github.com/antongolenev23/tuchka-server/internal/auth"
 	"github.com/antongolenev23/tuchka-server/internal/config"
 	"github.com/antongolenev23/tuchka-server/internal/entity"
@@ -14,8 +17,6 @@ import (
 	"github.com/antongolenev23/tuchka-server/internal/repository"
 	"github.com/antongolenev23/tuchka-server/internal/repository/model"
 	"github.com/antongolenev23/tuchka-server/internal/storage"
-	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 )
 
 const (
