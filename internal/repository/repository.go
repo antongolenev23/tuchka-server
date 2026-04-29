@@ -20,7 +20,7 @@ const (
 	UniqueViolation = "23505"
 )
 
-type File interface {
+type FileMetadata interface {
 	SaveFileMetadata(info model.MetadataInput) error
 	GetFilesMetadata(userID uuid.UUID) ([]dto.MetadataOutput, error)
 	GetFilePaths(downloadReq dto.FilesList, userID uuid.UUID) ([]entity.FilePath, error)
@@ -28,12 +28,12 @@ type File interface {
 	GetFilePath(name string, userID uuid.UUID) (string, error)
 }
 
-type User interface {
+type UserAccount interface {
 	Create(user entity.User) (uuid.UUID, error)
 	GetByEmail(email string) (entity.User, error)
 }
 
-type Repository interface {
-	File
-	User
+type IRepository interface {
+	FileMetadata
+	UserAccount
 }

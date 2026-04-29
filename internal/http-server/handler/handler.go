@@ -40,12 +40,12 @@ func (e ErrTooManyFiles) Error() string {
 }
 
 type Handler struct {
-	service service.Service
+	service service.IService
 	log     *slog.Logger
 	cfg     *config.Config
 }
 
-func New(service service.Service, cfg *config.Config, log *slog.Logger) *Handler {
+func New(service service.IService, cfg *config.Config, log *slog.Logger) *Handler {
 	return &Handler{
 		service: service,
 		log:     log,

@@ -33,7 +33,7 @@ var (
 	ErrInvalidPassword   = errors.New("invalid password")
 )
 
-type Service interface {
+type IService interface {
 	Upload(files []entity.File, result *entity.OperationResult, userID uuid.UUID, log *slog.Logger)
 	GetSavedFilesInfo(userID uuid.UUID) ([]dto.MetadataOutput, error)
 	DeleteFiles(req dto.FilesList, userID uuid.UUID, log *slog.Logger) entity.OperationResult
@@ -43,12 +43,12 @@ type Service interface {
 }
 
 type service struct {
-	repo    repository.Repository
+	repo    repository.IRepository
 	storage storage.Storage
 	cfg     *config.Config
 }
 
-func New(repo repository.Repository, storage storage.Storage, cfg *config.Config) Service {
+func New(repo repository.IRepository, storage storage.Storage, cfg *config.Config) IService {
 	return &service{
 		repo:    repo,
 		storage: storage,
