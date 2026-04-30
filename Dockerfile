@@ -1,5 +1,7 @@
 FROM golang:1.25-alpine AS builder
 
+ARG VERSION=dev
+
 # build
 WORKDIR /usr/local/src
 RUN apk --no-cache add musl-dev
@@ -11,7 +13,7 @@ COPY internal/ ./internal
 COPY docs/docs.go ./docs/docs.go
 COPY pkg/ ./pkg
 
-RUN go build -ldflags="-s -w" -o ./bin/tuchka_server cmd/tuchka-server/main.go
+RUN go build -ldflags="-s -w -X main.version=${VERSION}" -o ./bin/tuchka_server cmd/tuchka-server/main.go
 
 # run
 FROM alpine AS runner

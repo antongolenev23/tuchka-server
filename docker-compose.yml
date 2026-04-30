@@ -25,7 +25,10 @@ services:
       "
 
   app:
-    build: .
+    build: 
+      context: .
+      args:
+        - VERSION=${VERSION:-}
     depends_on:
       db:
         condition: service_healthy

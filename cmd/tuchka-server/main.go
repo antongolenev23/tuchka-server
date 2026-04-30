@@ -16,6 +16,10 @@ import (
 	_ "github.com/antongolenev23/tuchka-server/docs"
 )
 
+var(
+	version string
+)
+
 // @title Tuchka Server API
 // @version 0.0.4
 // @description API для загрузки и управления файлами
@@ -28,7 +32,10 @@ func main() {
 	cfg := config.MustLoad()
 	log := logger.MustInit(cfg.Env)
 
-	log.Info("starting tuchka-server", slog.String("env", cfg.Env))
+	log.Info("starting tuchka-server", 
+		slog.String("env", cfg.Env),
+		slog.String("version", version),
+	)
 	log.Debug("debug messages are enabled")
 
 	repo, err := postgres.New(cfg)
