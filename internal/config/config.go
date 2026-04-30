@@ -11,6 +11,12 @@ import (
 	"github.com/joho/godotenv"
 )
 
+const (
+	EnvLocal = "local"
+	EnvDev   = "dev"
+	EnvProd  = "prod"
+)
+
 type Config struct {
 	Env        string           `yaml:"env" env-required:"true"`
 	Database   DatabaseConfig   `yaml:"database"`

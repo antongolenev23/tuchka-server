@@ -13,7 +13,7 @@ import (
 
 	"github.com/antongolenev23/tuchka-server/internal/auth"
 	"github.com/antongolenev23/tuchka-server/internal/config"
-	resp "github.com/antongolenev23/tuchka-server/pkg/api/response"
+	"github.com/antongolenev23/tuchka-server/pkg/api/response"
 )
 
 type contextKey string
@@ -34,7 +34,7 @@ func AuthMiddleware(cfg *config.Config, log *slog.Logger) func(http.Handler) htt
 			if authHeader == "" {
 				log.Info("no Authorization header")
 				render.Status(r, http.StatusUnauthorized)
-				render.JSON(w, r, resp.Error("unauthorized"))
+				render.JSON(w, r, response.Error("unauthorized"))
 				return
 			}
 
@@ -57,12 +57,12 @@ func AuthMiddleware(cfg *config.Config, log *slog.Logger) func(http.Handler) htt
 			if err != nil {
 				log.Info("failed to parse token")
 				render.Status(r, http.StatusUnauthorized)
-				render.JSON(w, r, resp.Error("unauthorized"))
+				render.JSON(w, r, response.Error("unauthorized"))
 				return
 			} else if !token.Valid {
 				log.Info("invalid authorization token")
 				render.Status(r, http.StatusUnauthorized)
-				render.JSON(w, r, resp.Error("unauthorized"))
+				render.JSON(w, r, response.Error("unauthorized"))
 				return
 			}
 

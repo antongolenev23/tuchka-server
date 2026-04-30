@@ -4,27 +4,24 @@ import (
 	"log"
 	"log/slog"
 	"os"
-)
 
-const (
-	envLocal = "local"
-	envDev   = "dev"
-	envProd  = "prod"
+	"github.com/antongolenev23/tuchka-server/internal/config"
+
 )
 
 func MustInit(env string) *slog.Logger {
 	var logger *slog.Logger
 
 	switch env {
-	case envLocal:
+	case config.EnvLocal:
 		logger = slog.New(
 			slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
 		)
-	case envDev:
+	case config.EnvDev:
 		logger = slog.New(
 			slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
 		)
-	case envProd:
+	case config.EnvProd:
 		logger = slog.New(
 			slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}),
 		)

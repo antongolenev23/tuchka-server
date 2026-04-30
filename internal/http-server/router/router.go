@@ -5,11 +5,17 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	chimw "github.com/go-chi/chi/v5/middleware"
+	httpSwagger "github.com/swaggo/http-swagger"
 
 	"github.com/antongolenev23/tuchka-server/internal/config"
 	"github.com/antongolenev23/tuchka-server/internal/http-server/handler"
 	mw "github.com/antongolenev23/tuchka-server/internal/http-server/middleware"
 )
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description JWT token in format: Bearer <token>
 
 func New(handler *handler.Handler, cfg *config.Config, log *slog.Logger) *chi.Mux {
 	r := chi.NewRouter()
@@ -28,6 +34,11 @@ func New(handler *handler.Handler, cfg *config.Config, log *slog.Logger) *chi.Mu
 		r.Post("/download", handler.Download())
 		r.Post("/delete", handler.Delete())
 	})
+
+	
+	if cfg.Env == config.EnvDev {
+    	r.Get("/swagger/*", httpSwagger.WrapHandler)
+	}
 
 	return r
 }

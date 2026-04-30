@@ -16,7 +16,7 @@ import (
 	"github.com/antongolenev23/tuchka-server/internal/http-server/handler/dto"
 	mw "github.com/antongolenev23/tuchka-server/internal/http-server/middleware"
 	"github.com/antongolenev23/tuchka-server/internal/service"
-	resp "github.com/antongolenev23/tuchka-server/pkg/api/response"
+	"github.com/antongolenev23/tuchka-server/pkg/api/response"
 )
 
 const (
@@ -53,6 +53,18 @@ func New(service service.IService, cfg *config.Config, log *slog.Logger) *Handle
 	}
 }
 
+// Register godoc
+// @Summary Регистрация пользователя
+// @Description Создает нового пользователя и возвращает JWT токен
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body dto.AuthRequest true "Данные для регистрации"
+// @Success 200 {object} dto.AuthResponse
+// @Failure 400 {object} response.Response
+// @Failure 409 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /auth/register [post]
 func (h *Handler) Register() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handler.Register"
@@ -71,7 +83,7 @@ func (h *Handler) Register() http.HandlerFunc {
 				slog.String("error", err.Error()),
 			)
 			render.Status(r, http.StatusBadRequest)
-			render.JSON(w, r, resp.Error(invalidRequestBody))
+			render.JSON(w, r, response.Error(invalidRequestBody))
 			return
 		}
 
@@ -82,13 +94,13 @@ func (h *Handler) Register() http.HandlerFunc {
 					slog.String("error", userAlreadyExists),
 				)
 				render.Status(r, http.StatusConflict)
-				render.JSON(w, r, resp.Error(userAlreadyExists))
+				render.JSON(w, r, response.Error(userAlreadyExists))
 			} else {
 				log.Error("can not register user",
 					slog.String("error", err.Error()),
 				)
 				render.Status(r, http.StatusInternalServerError)
-				render.JSON(w, r, resp.Error("failed to register"))
+				render.JSON(w, r, response.Error("failed to register"))
 			}
 			return
 		}
@@ -102,6 +114,18 @@ func (h *Handler) Register() http.HandlerFunc {
 	}
 }
 
+// Login godoc
+// @Summary Авторизация пользователя
+// @Description Выполняет вход и возвращает JWT токен
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body dto.AuthRequest true "Данные для входа"
+// @Success 200 {object} dto.AuthResponse
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /auth/login [post]
 func (h *Handler) Login() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		const op = "handler.Login"
@@ -120,7 +144,7 @@ func (h *Handler) Login() http.HandlerFunc {
 				slog.String("error", err.Error()),
 			)
 			render.Status(r, http.StatusBadRequest)
-			render.JSON(w, r, resp.Error(invalidRequestBody))
+			render.JSON(w, r, response.Error(invalidRequestBody))
 			return
 		}
 
@@ -131,13 +155,13 @@ func (h *Handler) Login() http.HandlerFunc {
 					slog.String("error", userNotExists),
 				)
 				render.Status(r, http.StatusUnauthorized)
-				render.JSON(w, r, resp.Error(userNotExists))
+				render.JSON(w, r, response.Error(userNotExists))
 			} else {
 				log.Error("can not login",
 					slog.String("error", err.Error()),
 				)
 				render.Status(r, http.StatusInternalServerError)
-				render.JSON(w, r, resp.Error("failed to login"))
+				render.JSON(w, r, response.Error("failed to login"))
 			}
 			return
 		}
@@ -151,6 +175,20 @@ func (h *Handler) Login() http.HandlerFunc {
 	})
 }
 
+// Upload godoc
+// @Summary Загрузка файлов
+// @Description Загружает один или несколько файлов
+// @Tags files
+// @Accept multipart/form-data
+// @Produce json
+// @Security BearerAuth
+// @Param files formData file true "Files to upload"
+// @Success 200 {object} dto.ResponseBody
+// @Failure 400 {object} response.Response
+// @Failure 207 {object} dto.ResponseBody
+// @Failure 401 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /files/upload [post]
 func (h *Handler) Upload() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		const op = "handler.Upload"
@@ -164,7 +202,7 @@ func (h *Handler) Upload() http.HandlerFunc {
 		if !ok {
 			log.Error("failed to get user id from request context")
 			render.Status(r, http.StatusInternalServerError)
-			render.JSON(w, r, resp.Error("failed to upload files"))
+			render.JSON(w, r, response.Error("failed to upload files"))
 			return
 		}
 
@@ -176,9 +214,9 @@ func (h *Handler) Upload() http.HandlerFunc {
 
 			render.Status(r, http.StatusBadRequest)
 			if errors.Is(err, ErrNoFilesFound) {
-				render.JSON(w, r, resp.Error(err.Error()))
+				render.JSON(w, r, response.Error(err.Error()))
 			} else {
-				render.JSON(w, r, resp.Error(invalidRequestBody))
+				render.JSON(w, r, response.Error(invalidRequestBody))
 			}
 			return
 		}
@@ -206,6 +244,7 @@ func (h *Handler) Upload() http.HandlerFunc {
 	})
 }
 
+
 func validateAndParseBody(w http.ResponseWriter, r *http.Request) ([]*multipart.FileHeader, error) {
 	r.Body = http.MaxBytesReader(w, r.Body, 32*1024*1024) // 32 MB
 	defer r.Body.Close()
@@ -228,7 +267,10 @@ func getFileEntities(files []*multipart.FileHeader, result *entity.OperationResu
 	for _, fh := range files {
 		mf, err := fh.Open()
 		if err != nil {
-			log.Error("can not open fileheader of %s: %s", fh.Filename, err)
+			log.Error("can not open fileheader",
+				slog.String("filename", fh.Filename), 
+				slog.String("error", err.Error()),
+			)
 			result.AddError(fh.Filename, couldNotParseFile)
 			continue
 		}
@@ -260,6 +302,16 @@ func closeFiles(files []entity.File, log *slog.Logger) {
 	}
 }
 
+// Files godoc
+// @Summary Получить список файлов
+// @Description Возвращает список сохраненных файлов пользователя
+// @Tags files
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {array} dto.MetadataOutput
+// @Failure 401 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /files [get]
 func (h *Handler) Files() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		const op = "handler.Files"
@@ -273,7 +325,7 @@ func (h *Handler) Files() http.HandlerFunc {
 		if !ok {
 			log.Error("failed to get user id from request context")
 			render.Status(r, http.StatusInternalServerError)
-			render.JSON(w, r, resp.Error("failed to get files info"))
+			render.JSON(w, r, response.Error("failed to get files info"))
 			return
 		}
 
@@ -283,7 +335,7 @@ func (h *Handler) Files() http.HandlerFunc {
 				slog.String("error", err.Error()),
 			)
 			render.Status(r, http.StatusInternalServerError)
-			render.JSON(w, r, resp.Error("failed to get saved files info"))
+			render.JSON(w, r, response.Error("failed to get saved files info"))
 			return
 		}
 
@@ -295,6 +347,19 @@ func (h *Handler) Files() http.HandlerFunc {
 	})
 }
 
+// Download godoc
+// @Summary Скачать файлы
+// @Description Архивирует и возвращает указанные файлы
+// @Tags files
+// @Accept json
+// @Produce application/zip
+// @Security BearerAuth
+// @Param request body dto.FilesList true "Список файлов"
+// @Success 200 {object} []byte "ZIP file content"
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /files/download [post]
 func (h *Handler) Download() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handler.Download"
@@ -308,7 +373,7 @@ func (h *Handler) Download() http.HandlerFunc {
 		if !ok {
 			log.Error("failed to get user_id")
 			render.Status(r, http.StatusInternalServerError)
-			render.JSON(w, r, resp.Error("failed to upload files"))
+			render.JSON(w, r, response.Error("failed to upload files"))
 			return
 		}
 
@@ -319,7 +384,7 @@ func (h *Handler) Download() http.HandlerFunc {
 			log.Info("failed to parse body", slog.Any("error", err))
 
 			render.Status(r, http.StatusBadRequest)
-			render.JSON(w, r, resp.Error(invalidRequestBody))
+			render.JSON(w, r, response.Error(invalidRequestBody))
 			return
 		}
 
@@ -327,7 +392,7 @@ func (h *Handler) Download() http.HandlerFunc {
 			log.Info("validation failed", slog.Any("error", err))
 
 			render.Status(r, http.StatusBadRequest)
-			render.JSON(w, r, resp.Error(err.Error()))
+			render.JSON(w, r, response.Error(err.Error()))
 			return
 		}
 
@@ -339,11 +404,11 @@ func (h *Handler) Download() http.HandlerFunc {
 			if errors.Is(err, service.ErrNotAllFilesExist) {
 				log.Info(notAllFilesFound)
 				render.Status(r, http.StatusBadRequest)
-				render.JSON(w, r, resp.Error(err.Error()))
+				render.JSON(w, r, response.Error(err.Error()))
 			} else {
 				log.Error("download failed", slog.Any("error", err))
 				render.Status(r, http.StatusInternalServerError)
-				render.JSON(w, r, resp.Error(err.Error()))
+				render.JSON(w, r, response.Error(err.Error()))
 			}
 		}
 	}
@@ -363,6 +428,20 @@ func (h *Handler) validateDownloadRequest(req *dto.FilesList) error {
 	return nil
 }
 
+// Delete godoc
+// @Summary Удалить файлы
+// @Description Удаляет указанные файлы пользователя
+// @Tags files
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body dto.FilesList true "Список файлов"
+// @Success 200 {object} dto.ResponseBody
+// @Failure 207 {object} dto.ResponseBody
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /files/delete [delete]
 func (h *Handler) Delete() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		const op = "handler.Delete"
@@ -376,7 +455,7 @@ func (h *Handler) Delete() http.HandlerFunc {
 		if !ok {
 			log.Error("failed to get user_id")
 			render.Status(r, http.StatusInternalServerError)
-			render.JSON(w, r, resp.Error("failed to upload files"))
+			render.JSON(w, r, response.Error("failed to upload files"))
 			return
 		}
 
@@ -388,7 +467,7 @@ func (h *Handler) Delete() http.HandlerFunc {
 				slog.String("error", err.Error()),
 			)
 			render.Status(r, http.StatusBadRequest)
-			render.JSON(w, r, resp.Error(invalidRequestBody))
+			render.JSON(w, r, response.Error(invalidRequestBody))
 			return
 		}
 
@@ -397,7 +476,7 @@ func (h *Handler) Delete() http.HandlerFunc {
 				slog.String("error", err.Error()),
 			)
 			render.Status(r, http.StatusBadRequest)
-			render.JSON(w, r, resp.Error(err.Error()))
+			render.JSON(w, r, response.Error(err.Error()))
 			return
 		}
 

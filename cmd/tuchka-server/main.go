@@ -12,8 +12,18 @@ import (
 	"github.com/antongolenev23/tuchka-server/internal/service"
 	"github.com/antongolenev23/tuchka-server/internal/storage/disk"
 	"github.com/antongolenev23/tuchka-server/pkg/logger"
+
+	_ "github.com/antongolenev23/tuchka-server/docs"
 )
 
+// @title Tuchka Server API
+// @version 0.0.4
+// @description API для загрузки и управления файлами
+// @termsOfService http://swagger.io/terms/
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 func main() {
 	cfg := config.MustLoad()
 	log := logger.MustInit(cfg.Env)

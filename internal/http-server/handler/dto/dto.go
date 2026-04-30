@@ -2,7 +2,7 @@ package dto
 
 import (
 	"github.com/antongolenev23/tuchka-server/internal/entity"
-	resp "github.com/antongolenev23/tuchka-server/pkg/api/response"
+	"github.com/antongolenev23/tuchka-server/pkg/api/response"
 	"github.com/antongolenev23/tuchka-server/pkg/types"
 )
 
@@ -28,7 +28,7 @@ type FilesList struct {
 
 type FileUploadResult struct {
 	FileName string `json:"file_name"`
-	resp.Response
+	Response response.Response
 }
 
 type ResponseBody struct {
@@ -40,14 +40,14 @@ func GetResultDTO(r entity.OperationResult) ResponseBody {
 
 	for _, name := range r.Success {
 		respBody.Results = append(respBody.Results, FileUploadResult{
-			Response: resp.OK(),
 			FileName: name,
+			Response: response.OK(),
 		})
 	}
 
 	for name, msg := range r.Errors {
 		respBody.Results = append(respBody.Results, FileUploadResult{
-			Response: resp.Error(msg),
+			Response: response.Error(msg),
 			FileName: name,
 		})
 	}

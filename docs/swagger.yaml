@@ -1,0 +1,276 @@
+definitions:
+  dto.AuthRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  dto.AuthResponse:
+    properties:
+      email:
+        type: string
+      token:
+        type: string
+    type: object
+  dto.FileUploadResult:
+    properties:
+      file_name:
+        type: string
+      response:
+        $ref: '#/definitions/response.Response'
+    type: object
+  dto.FilesList:
+    properties:
+      files:
+        items:
+          type: string
+        type: array
+    type: object
+  dto.MetadataOutput:
+    properties:
+      created_at:
+        type: string
+      name:
+        type: string
+      size:
+        type: integer
+    type: object
+  dto.ResponseBody:
+    properties:
+      results:
+        items:
+          $ref: '#/definitions/dto.FileUploadResult'
+        type: array
+    type: object
+  response.Response:
+    properties:
+      error:
+        type: string
+      status:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: API для загрузки и управления файлами
+  termsOfService: http://swagger.io/terms/
+  title: Tuchka Server API
+  version: 0.0.4
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Выполняет вход и возвращает JWT токен
+      parameters:
+      - description: Данные для входа
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AuthRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Авторизация пользователя
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Создает нового пользователя и возвращает JWT токен
+      parameters:
+      - description: Данные для регистрации
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AuthRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Регистрация пользователя
+      tags:
+      - auth
+  /files:
+    get:
+      description: Возвращает список сохраненных файлов пользователя
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.MetadataOutput'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Получить список файлов
+      tags:
+      - files
+  /files/delete:
+    delete:
+      consumes:
+      - application/json
+      description: Удаляет указанные файлы пользователя
+      parameters:
+      - description: Список файлов
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.FilesList'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ResponseBody'
+        "207":
+          description: Multi-Status
+          schema:
+            $ref: '#/definitions/dto.ResponseBody'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Удалить файлы
+      tags:
+      - files
+  /files/download:
+    post:
+      consumes:
+      - application/json
+      description: Архивирует и возвращает указанные файлы
+      parameters:
+      - description: Список файлов
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.FilesList'
+      produces:
+      - application/zip
+      responses:
+        "200":
+          description: ZIP file content
+          schema:
+            items:
+              format: int32
+              type: integer
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Скачать файлы
+      tags:
+      - files
+  /files/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Загружает один или несколько файлов
+      parameters:
+      - description: Files to upload
+        in: formData
+        name: files
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ResponseBody'
+        "207":
+          description: Multi-Status
+          schema:
+            $ref: '#/definitions/dto.ResponseBody'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Загрузка файлов
+      tags:
+      - files
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
