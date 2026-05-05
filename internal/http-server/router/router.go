@@ -36,7 +36,7 @@ func New(handler *handler.Handler, cfg *config.Config, log *slog.Logger) *chi.Mu
 	})
 
 	
-	if cfg.Env == config.EnvDev {
+	if cfg.Env == config.EnvLocal {
     	r.Get("/swagger/*", httpSwagger.WrapHandler)
 	}
 

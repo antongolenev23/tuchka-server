@@ -59,11 +59,10 @@ func main() {
 	}
 
 	log.Info("starting server", slog.String("address", cfg.HTTPServer.Address))
-	if err := srv.ListenAndServe(); err != nil {
-		log.Error("failed to start server",
-			slog.String("error", err.Error()),
-		)
+	if err := srv.ListenAndServeTLS(cfg.HTTPServer.CertFile, cfg.HTTPServer.KeyFile); err != nil {
+		log.Error("server stopped", slog.String("error", err.Error()))
+		os.Exit(1)
 	}
 
-	log.Error("server stopped")
+	log.Info("server stopped")
 }

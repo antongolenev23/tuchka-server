@@ -1,4 +1,4 @@
-env: "prod" #local, dev, prod
+env: "prod" #local, prod
 database:
   name: "tuchka"
   user: "appuser"

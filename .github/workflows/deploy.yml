@@ -56,7 +56,7 @@ jobs:
           echo 'DB_PASSWORD=${{ secrets.DB_PASSWORD }}' > $ENV_FILE_PATH && \
           echo 'JWT_SECRET=${{ secrets.JWT_SECRET }}' >> $ENV_FILE_PATH && \
           echo 'JWT_EXPIRATION_HOURS=${{ secrets.JWT_EXPIRATION_HOURS }}' >> $ENV_FILE_PATH && \
-          echo 'CONFIG_PATH=/tuchka-server/config/prod.yml' >> $ENV_FILE_PATH \
+          echo 'CONFIG_PATH=/etc/tuchka-server/prod.yml' >> $ENV_FILE_PATH \
           "
 
       - name: Deploy with Docker Compose

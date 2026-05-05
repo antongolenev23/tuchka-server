@@ -1,10 +1,12 @@
-env: "dev" #local, dev, prod
+env: "local" #local, prod
 database:
   name: "tuchka"
   user: "appuser"
   sslmode: "disable"
 http_server:
-  address: "0.0.0.0:8080"
+  address: ":8443"
+  cert_file: "/certs/localhost+2.pem"
+  key_file: "/certs/localhost+2-key.pem"
   request_read_timeout: 5s
   response_write_timeout: 5s
   idle_timeout: 60s

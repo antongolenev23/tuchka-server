@@ -21,17 +21,20 @@ profile.cov
 go.work
 go.work.sum
 
-# env file
+# .env file
 .env*
 !.env.example
 
-#logs
+# Logs
 logs/
 *.log
 
-#data
+# Dev files 
 data/
 
 # Editor/IDE
 .idea/
 .vscode/
+
+# certs
+certs/

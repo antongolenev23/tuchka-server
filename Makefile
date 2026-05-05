@@ -7,6 +7,6 @@ install-tools:
 mock:
 	mockery --config tools/config/mockery.yml
 
-build:
+run:
 	@echo "Building with version: $(VERSION)"
-	VERSION=$(VERSION) docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+	VERSION=$(VERSION) docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --build

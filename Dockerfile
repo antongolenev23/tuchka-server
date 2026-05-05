@@ -20,7 +20,7 @@ FROM alpine AS runner
 
 WORKDIR /tuchka-server
 COPY --from=builder /usr/local/src/bin/tuchka_server ./
-COPY ./config /tuchka-server/config
+COPY ./config /etc/tuchka-server
 COPY migrations /migrations
 
 CMD ["./tuchka_server"]

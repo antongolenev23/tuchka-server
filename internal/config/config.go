@@ -13,7 +13,6 @@ import (
 
 const (
 	EnvLocal = "local"
-	EnvDev   = "dev"
 	EnvProd  = "prod"
 )
 
@@ -37,6 +36,8 @@ type HTTPServerConfig struct {
 	RequestReadTimeout   time.Duration `yaml:"request_read_timeout" env-required:"true"`
 	ResponseWriteTimeout time.Duration `yaml:"response_write_timeout" env-required:"true"`
 	IdleTimeout          time.Duration `yaml:"idle_timeout" env-required:"true"`
+	CertFile string `yaml:"cert_file" env-required:"true"`
+	KeyFile string `yaml:"key_file" env-required:"true"`
 }
 
 type AuthConfig struct {
