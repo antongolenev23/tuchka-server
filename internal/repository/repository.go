@@ -36,4 +36,5 @@ type UserAccount interface {
 type IRepository interface {
 	FileMetadata
 	UserAccount
+	Close() error
 }

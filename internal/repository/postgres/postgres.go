@@ -54,6 +54,10 @@ func New(cfg *config.Config) (repository.IRepository, error) {
 	return &PostgresRepository{db: db}, nil
 }
 
+func (p *PostgresRepository) Close() error {
+	return p.db.Close()
+}
+
 func (p *PostgresRepository) Create(user entity.User) (uuid.UUID, error) {
 	const op = "repository.postgres.Create"
 
