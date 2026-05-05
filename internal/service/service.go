@@ -43,12 +43,12 @@ type IService interface {
 }
 
 type service struct {
-	repo    repository.IRepository
+	repo    repository.Repository
 	storage storage.Storage
 	cfg     *config.Config
 }
 
-func New(repo repository.IRepository, storage storage.Storage, cfg *config.Config) IService {
+func New(repo repository.Repository, storage storage.Storage, cfg *config.Config) IService {
 	return &service{
 		repo:    repo,
 		storage: storage,

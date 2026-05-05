@@ -21,7 +21,7 @@ type PostgresRepository struct {
 	db *sql.DB
 }
 
-func New(cfg *config.Config) (repository.IRepository, error) {
+func New(cfg *config.Config) (repository.Repository, error) {
 	const op = "repository.postgres.New"
 
 	dsn := fmt.Sprintf(

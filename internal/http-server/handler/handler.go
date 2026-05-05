@@ -244,7 +244,6 @@ func (h *Handler) Upload() http.HandlerFunc {
 	})
 }
 
-
 func validateAndParseBody(w http.ResponseWriter, r *http.Request) ([]*multipart.FileHeader, error) {
 	r.Body = http.MaxBytesReader(w, r.Body, 32*1024*1024) // 32 MB
 	defer r.Body.Close()
@@ -268,7 +267,7 @@ func getFileEntities(files []*multipart.FileHeader, result *entity.OperationResu
 		mf, err := fh.Open()
 		if err != nil {
 			log.Error("can not open fileheader",
-				slog.String("filename", fh.Filename), 
+				slog.String("filename", fh.Filename),
 				slog.String("error", err.Error()),
 			)
 			result.AddError(fh.Filename, couldNotParseFile)

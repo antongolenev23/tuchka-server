@@ -33,7 +33,7 @@ type UserAccount interface {
 	GetByEmail(email string) (entity.User, error)
 }
 
-type IRepository interface {
+type Repository interface {
 	FileMetadata
 	UserAccount
 	Close() error

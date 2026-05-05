@@ -25,7 +25,7 @@ type App struct {
 	version string
 
 	server *http.Server
-	repo   repository.IRepository // интерфейс лучше, но можно и конкретный тип
+	repo   repository.Repository
 }
 
 func New(cfg *config.Config, log *slog.Logger, version string) *App {

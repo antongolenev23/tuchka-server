@@ -35,9 +35,8 @@ func New(handler *handler.Handler, cfg *config.Config, log *slog.Logger) *chi.Mu
 		r.Post("/delete", handler.Delete())
 	})
 
-	
 	if cfg.Env == config.EnvLocal {
-    	r.Get("/swagger/*", httpSwagger.WrapHandler)
+		r.Get("/swagger/*", httpSwagger.WrapHandler)
 	}
 
 	return r

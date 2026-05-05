@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/antongolenev23/tuchka-server/internal/config"
-
 )
 
 func MustInit(env string) *slog.Logger {
