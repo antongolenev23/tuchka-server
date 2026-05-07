@@ -2,13 +2,13 @@ services:
   db:
     image: postgres:16
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U appuser -d tuchka"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 5s
       timeout: 5s
       retries: 5
     environment:
-      POSTGRES_DB: tuchka
-      POSTGRES_USER: appuser
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
@@ -21,7 +21,7 @@ services:
     entrypoint: >
       sh -c "
       migrate -path=/migrations \
-      -database postgres://appuser:${DB_PASSWORD}@db:5432/tuchka?sslmode=disable up
+      -database postgres://${DB_USER}:${DB_PASSWORD}@db:${DB_PORT}/${DB_NAME}?sslmode=${DB_SSLMODE} up
       "
 
   app:
@@ -33,10 +33,14 @@ services:
       db:
         condition: service_healthy
     environment:
-      DB_PASSWORD: ${DB_PASSWORD}
       CONFIG_PATH: ${CONFIG_PATH}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION_HOURS: ${JWT_EXPIRATION_HOURS}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_PORT: ${DB_PORT}
+      DB_SSLMODE: ${DB_SSLMODE}
 
 volumes:
   pgdata:

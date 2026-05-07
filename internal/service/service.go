@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -19,13 +20,6 @@ import (
 	"github.com/antongolenev23/tuchka-server/internal/storage"
 )
 
-const (
-	fileAlreadyExists  = "file already exists"
-	fileNotFound       = "file not found"
-	failedToSaveFile   = "failed to save file"
-	failedToDeleteFile = "failed to delete file"
-)
-
 var (
 	ErrNotAllFilesExist  = errors.New("not all files exist")
 	ErrUserAlreadyExists = errors.New("user already exists")
@@ -33,13 +27,13 @@ var (
 	ErrInvalidPassword   = errors.New("invalid password")
 )
 
-type IService interface {
-	Upload(files []entity.File, result *entity.OperationResult, userID uuid.UUID, log *slog.Logger)
-	GetSavedFilesInfo(userID uuid.UUID) ([]dto.MetadataOutput, error)
-	DeleteFiles(req dto.FilesList, userID uuid.UUID, log *slog.Logger) entity.OperationResult
-	Download(filesReq dto.FilesList, w io.Writer, userID uuid.UUID) error
-	Register(email, password string) (string, entity.User, error)
-	Login(email, password string) (string, entity.User, error)
+type Service interface {
+	Upload(ctx context.Context, files []entity.File, result *entity.OperationResult, userID uuid.UUID, log *slog.Logger)
+	GetSavedFilesInfo(ctx context.Context, userID uuid.UUID) ([]dto.MetadataOutput, error)
+	DeleteFiles(ctx context.Context, req dto.FilesList, userID uuid.UUID, log *slog.Logger) entity.OperationResult
+	Download(ctx context.Context, filesReq dto.FilesList, w io.Writer, userID uuid.UUID) error
+	Register(ctx context.Context, email, password string) (string, entity.User, error)
+	Login(ctx context.Context, email, password string) (string, entity.User, error)
 }
 
 type service struct {
@@ -48,7 +42,7 @@ type service struct {
 	cfg     *config.Config
 }
 
-func New(repo repository.Repository, storage storage.Storage, cfg *config.Config) IService {
+func New(repo repository.Repository, storage storage.Storage, cfg *config.Config) Service {
 	return &service{
 		repo:    repo,
 		storage: storage,
@@ -56,10 +50,10 @@ func New(repo repository.Repository, storage storage.Storage, cfg *config.Config
 	}
 }
 
-func (s *service) Register(email, password string) (string, entity.User, error) {
+func (s *service) Register(ctx context.Context, email, password string) (string, entity.User, error) {
 	const op = "service.Register"
 
-	_, err := s.repo.GetByEmail(email)
+	_, err := s.repo.GetByEmail(ctx, email)
 	if err == nil {
 		return "", entity.User{}, ErrUserAlreadyExists
 	} else if !errors.Is(err, repository.ErrUserNotFound) {
@@ -76,7 +70,7 @@ func (s *service) Register(email, password string) (string, entity.User, error) 
 		PasswordHash: string(hashedPassword),
 	}
 
-	id, err := s.repo.Create(user)
+	id, err := s.repo.Create(ctx, user)
 	if err != nil {
 		return "", entity.User{}, fmt.Errorf("%s: %w", op, err)
 	}
@@ -89,10 +83,10 @@ func (s *service) Register(email, password string) (string, entity.User, error) 
 	return token, user, nil
 }
 
-func (s *service) Login(email, password string) (string, entity.User, error) {
+func (s *service) Login(ctx context.Context, email, password string) (string, entity.User, error) {
 	const op = "service.Login"
 
-	user, err := s.repo.GetByEmail(email)
+	user, err := s.repo.GetByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, repository.ErrUserNotFound) {
 			return "", entity.User{}, ErrUserNotExists
@@ -112,26 +106,22 @@ func (s *service) Login(email, password string) (string, entity.User, error) {
 	return token, user, nil
 }
 
-func (s *service) Upload(files []entity.File, result *entity.OperationResult, userID uuid.UUID, log *slog.Logger) {
+func (s *service) Upload(ctx context.Context, files []entity.File, result *entity.OperationResult, userID uuid.UUID, log *slog.Logger) {
 	const op = "service.Upload"
 
 	for _, f := range files {
+		if err := ctx.Err(); err != nil {
+			log.Warn("context cancelled",
+				slog.String("error", err.Error()),
+			)
+			break
+		}
+
 		safeName := filepath.Base(f.Name)
 
-		path, size, err := s.storage.Save(safeName, userID, f.Data)
+		path, size, err := s.storage.Save(ctx, safeName, userID, f.Data)
 		if err != nil {
-			if errors.Is(err, storage.ErrFileAlreadyExists) {
-				log.Info("file already exists",
-					slog.String("filename", safeName),
-				)
-				result.AddError(safeName, fileAlreadyExists)
-			} else {
-				log.Error("failed to save file",
-					slog.String("filename", safeName),
-					slog.String("error", fmt.Errorf("%s: %w", op, err).Error()),
-				)
-				result.AddError(safeName, failedToSaveFile)
-			}
+			handleFilesError(result, safeName, "failed to save file", op, log, err)
 			continue
 		}
 
@@ -144,16 +134,7 @@ func (s *service) Upload(files []entity.File, result *entity.OperationResult, us
 
 		err = s.repo.SaveFileMetadata(metadata)
 		if err != nil {
-			if errors.Is(err, repository.ErrMetadataAlreadyExists) {
-				log.Info("file metadata already exists", slog.String("filename", safeName))
-				result.AddError(safeName, fileAlreadyExists)
-			} else {
-				log.Error("failed to save file metadata",
-					slog.String("filename", safeName),
-					slog.String("error", fmt.Errorf("%s: %w", op, err).Error()),
-				)
-				result.AddError(safeName, failedToSaveFile)
-			}
+			handleFilesError(result, safeName, "failed to save file metadata", op, log, err)
 
 			err := s.storage.Remove(path)
 			if err != nil {
@@ -170,10 +151,10 @@ func (s *service) Upload(files []entity.File, result *entity.OperationResult, us
 	}
 }
 
-func (s *service) GetSavedFilesInfo(userID uuid.UUID) ([]dto.MetadataOutput, error) {
+func (s *service) GetSavedFilesInfo(ctx context.Context, userID uuid.UUID) ([]dto.MetadataOutput, error) {
 	const op = "service.GetSavedFilesInfo"
 
-	output, err := s.repo.GetFilesMetadata(userID)
+	output, err := s.repo.GetFilesMetadata(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
@@ -181,26 +162,22 @@ func (s *service) GetSavedFilesInfo(userID uuid.UUID) ([]dto.MetadataOutput, err
 	return output, nil
 }
 
-func (s *service) DeleteFiles(req dto.FilesList, userID uuid.UUID, log *slog.Logger) entity.OperationResult {
+func (s *service) DeleteFiles(ctx context.Context, req dto.FilesList, userID uuid.UUID, log *slog.Logger) entity.OperationResult {
 	const op = "service.DeleteFiles"
 
 	var result entity.OperationResult
 
 	for _, name := range req.Files {
-		filePath, err := s.repo.GetFilePath(name, userID)
+		if err := ctx.Err(); err != nil {
+			log.Warn("context cancelled",
+				slog.String("error", err.Error()),
+			)
+			break
+		}
+
+		filePath, err := s.repo.GetFilePath(ctx, name, userID)
 		if err != nil {
-			if errors.Is(err, repository.ErrMetadataNotFound) {
-				log.Info("file metadata not found",
-					slog.String("filename", name),
-				)
-				result.AddError(name, fileNotFound)
-			} else {
-				log.Error("failed to get file metadata",
-					slog.String("filename", name),
-					slog.String("error", fmt.Errorf("%s: %w", op, err).Error()),
-				)
-				result.AddError(name, failedToDeleteFile)
-			}
+			handleFilesError(&result, name, "failed to get file path", op, log, err)
 			continue
 		}
 
@@ -209,14 +186,14 @@ func (s *service) DeleteFiles(req dto.FilesList, userID uuid.UUID, log *slog.Log
 				log.Info("file not found",
 					slog.String("filename", name),
 				)
-				result.AddError(name, fileNotFound)
+				result.AddError(name, "file not found")
 			} else {
 				log.Error("failed to delete file from disk",
 					slog.String("filename", name),
 					slog.String("path", filePath),
 					slog.String("error", fmt.Errorf("%s: %w", op, err).Error()),
 				)
-				result.AddError(name, failedToDeleteFile)
+				result.AddError(name, "failed to delete file")
 			}
 			log.Warn("file not found on disk, deleting metadata only",
 				slog.String("op", op),
@@ -231,7 +208,7 @@ func (s *service) DeleteFiles(req dto.FilesList, userID uuid.UUID, log *slog.Log
 				slog.String("filename", name),
 				slog.String("error", fmt.Errorf("%s: %w", op, err).Error()),
 			)
-			result.AddError(name, failedToDeleteFile)
+			result.AddError(name, "failed to delete file")
 			continue
 		}
 
@@ -246,10 +223,10 @@ func (s *service) DeleteFiles(req dto.FilesList, userID uuid.UUID, log *slog.Log
 	return result
 }
 
-func (s *service) Download(req dto.FilesList, w io.Writer, userID uuid.UUID) error {
+func (s *service) Download(ctx context.Context, req dto.FilesList, w io.Writer, userID uuid.UUID) error {
 	const op = "service.Download"
 
-	files, err := s.repo.GetFilePaths(req, userID)
+	files, err := s.repo.GetFilePaths(ctx, req, userID)
 	if err != nil {
 		if errors.Is(err, repository.ErrMetadataNotFound) {
 			return ErrNotAllFilesExist
@@ -265,7 +242,7 @@ func (s *service) Download(req dto.FilesList, w io.Writer, userID uuid.UUID) err
 		})
 	}
 
-	if err := s.storage.WriteZIP(w, storageFiles); err != nil {
+	if err := s.storage.WriteZIP(ctx, w, storageFiles); err != nil {
 		if errors.Is(err, storage.ErrFileNotFound) {
 			return ErrNotAllFilesExist
 		}
@@ -273,4 +250,43 @@ func (s *service) Download(req dto.FilesList, w io.Writer, userID uuid.UUID) err
 	}
 
 	return nil
+}
+
+func handleFilesError(
+	result *entity.OperationResult,
+	fileName string,
+	defaultMessage string,
+	op string,
+	log *slog.Logger,
+	err error,
+) {
+	switch {
+	case errors.Is(err, context.Canceled):
+		log.Info("request canceled")
+
+	case errors.Is(err, context.DeadlineExceeded):
+		log.Warn("request timeout")
+
+	case errors.Is(err, storage.ErrFileAlreadyExists):
+		log.Info("file already exists",
+			slog.String("filename", fileName),
+		)
+		result.AddError(fileName, "file already exists")
+
+	case errors.Is(err, repository.ErrMetadataAlreadyExists):
+		log.Info("file metadata already exists", slog.String("filename", fileName))
+		result.AddError(fileName, "file already exists")
+
+	case errors.Is(err, repository.ErrMetadataNotFound):
+		log.Info("file metadata not found",
+			slog.String("filename", fileName),
+		)
+		result.AddError(fileName, "file not found")
+	default:
+		log.Error(defaultMessage,
+			slog.String("filename", fileName),
+			slog.String("error", fmt.Errorf("%s: %w", op, err).Error()),
+		)
+		result.AddError(fileName, "operation failed")
+	}
 }

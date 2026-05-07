@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"maps"
@@ -83,8 +84,8 @@ func TestUpload(t *testing.T) {
 				uploadResult: entity.OperationResult{
 					Success: nil,
 					Errors: map[string]string{
-						"file1.txt": "failed to save file",
-						"file2.txt": "failed to save file",
+						"file1.txt": "operation failed",
+						"file2.txt": "operation failed",
 						"file3.txt": "file already exists",
 					},
 				},
@@ -93,10 +94,11 @@ func TestUpload(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
 			mockStorage := mocks.NewMockStorage(t)
 			for i := 0; i < len(tt.got.files); i++ {
 				mockStorage.EXPECT().
-					Save(tt.got.files[i].Name, mock.Anything, mock.Anything).
+					Save(ctx, tt.got.files[i].Name, mock.Anything, mock.Anything).
 					Return("", 0, tt.want.storage.errors[i]).
 					Once()
 
@@ -126,7 +128,7 @@ func TestUpload(t *testing.T) {
 			mockUserID := uuid.New()
 
 			var result entity.OperationResult
-			service.Upload(tt.got.files, &result, mockUserID, log)
+			service.Upload(ctx, tt.got.files, &result, mockUserID, log)
 
 			if !equalUploadResult(result, tt.want.uploadResult) {
 				t.Fatalf("results not equal. Expected: %v, Got: %v", tt.want.uploadResult, result)

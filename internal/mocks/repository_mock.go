@@ -5,6 +5,8 @@
 package mocks
 
 import (
+	"context"
+
 	"github.com/google/uuid"
 	mock "github.com/stretchr/testify/mock"
 
@@ -85,8 +87,8 @@ func (_c *MockRepository_Close_Call) RunAndReturn(run func() error) *MockReposit
 }
 
 // Create provides a mock function for the type MockRepository
-func (_mock *MockRepository) Create(user entity.User) (uuid.UUID, error) {
-	ret := _mock.Called(user)
+func (_mock *MockRepository) Create(ctx context.Context, user entity.User) (uuid.UUID, error) {
+	ret := _mock.Called(ctx, user)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Create")
@@ -94,18 +96,18 @@ func (_mock *MockRepository) Create(user entity.User) (uuid.UUID, error) {
 
 	var r0 uuid.UUID
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(entity.User) (uuid.UUID, error)); ok {
-		return returnFunc(user)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, entity.User) (uuid.UUID, error)); ok {
+		return returnFunc(ctx, user)
 	}
-	if returnFunc, ok := ret.Get(0).(func(entity.User) uuid.UUID); ok {
-		r0 = returnFunc(user)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, entity.User) uuid.UUID); ok {
+		r0 = returnFunc(ctx, user)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(uuid.UUID)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(entity.User) error); ok {
-		r1 = returnFunc(user)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, entity.User) error); ok {
+		r1 = returnFunc(ctx, user)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -118,19 +120,25 @@ type MockRepository_Create_Call struct {
 }
 
 // Create is a helper method to define mock.On call
+//   - ctx context.Context
 //   - user entity.User
-func (_e *MockRepository_Expecter) Create(user interface{}) *MockRepository_Create_Call {
-	return &MockRepository_Create_Call{Call: _e.mock.On("Create", user)}
+func (_e *MockRepository_Expecter) Create(ctx interface{}, user interface{}) *MockRepository_Create_Call {
+	return &MockRepository_Create_Call{Call: _e.mock.On("Create", ctx, user)}
 }
 
-func (_c *MockRepository_Create_Call) Run(run func(user entity.User)) *MockRepository_Create_Call {
+func (_c *MockRepository_Create_Call) Run(run func(ctx context.Context, user entity.User)) *MockRepository_Create_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 entity.User
+		var arg0 context.Context
 		if args[0] != nil {
-			arg0 = args[0].(entity.User)
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 entity.User
+		if args[1] != nil {
+			arg1 = args[1].(entity.User)
 		}
 		run(
 			arg0,
+			arg1,
 		)
 	})
 	return _c
@@ -141,7 +149,7 @@ func (_c *MockRepository_Create_Call) Return(uUID uuid.UUID, err error) *MockRep
 	return _c
 }
 
-func (_c *MockRepository_Create_Call) RunAndReturn(run func(user entity.User) (uuid.UUID, error)) *MockRepository_Create_Call {
+func (_c *MockRepository_Create_Call) RunAndReturn(run func(ctx context.Context, user entity.User) (uuid.UUID, error)) *MockRepository_Create_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -204,8 +212,8 @@ func (_c *MockRepository_DeleteFileMetadata_Call) RunAndReturn(run func(name str
 }
 
 // GetByEmail provides a mock function for the type MockRepository
-func (_mock *MockRepository) GetByEmail(email string) (entity.User, error) {
-	ret := _mock.Called(email)
+func (_mock *MockRepository) GetByEmail(ctx context.Context, email string) (entity.User, error) {
+	ret := _mock.Called(ctx, email)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetByEmail")
@@ -213,16 +221,16 @@ func (_mock *MockRepository) GetByEmail(email string) (entity.User, error) {
 
 	var r0 entity.User
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(string) (entity.User, error)); ok {
-		return returnFunc(email)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (entity.User, error)); ok {
+		return returnFunc(ctx, email)
 	}
-	if returnFunc, ok := ret.Get(0).(func(string) entity.User); ok {
-		r0 = returnFunc(email)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) entity.User); ok {
+		r0 = returnFunc(ctx, email)
 	} else {
 		r0 = ret.Get(0).(entity.User)
 	}
-	if returnFunc, ok := ret.Get(1).(func(string) error); ok {
-		r1 = returnFunc(email)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, email)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -235,19 +243,25 @@ type MockRepository_GetByEmail_Call struct {
 }
 
 // GetByEmail is a helper method to define mock.On call
+//   - ctx context.Context
 //   - email string
-func (_e *MockRepository_Expecter) GetByEmail(email interface{}) *MockRepository_GetByEmail_Call {
-	return &MockRepository_GetByEmail_Call{Call: _e.mock.On("GetByEmail", email)}
+func (_e *MockRepository_Expecter) GetByEmail(ctx interface{}, email interface{}) *MockRepository_GetByEmail_Call {
+	return &MockRepository_GetByEmail_Call{Call: _e.mock.On("GetByEmail", ctx, email)}
 }
 
-func (_c *MockRepository_GetByEmail_Call) Run(run func(email string)) *MockRepository_GetByEmail_Call {
+func (_c *MockRepository_GetByEmail_Call) Run(run func(ctx context.Context, email string)) *MockRepository_GetByEmail_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 string
+		var arg0 context.Context
 		if args[0] != nil {
-			arg0 = args[0].(string)
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
 		}
 		run(
 			arg0,
+			arg1,
 		)
 	})
 	return _c
@@ -258,14 +272,14 @@ func (_c *MockRepository_GetByEmail_Call) Return(user entity.User, err error) *M
 	return _c
 }
 
-func (_c *MockRepository_GetByEmail_Call) RunAndReturn(run func(email string) (entity.User, error)) *MockRepository_GetByEmail_Call {
+func (_c *MockRepository_GetByEmail_Call) RunAndReturn(run func(ctx context.Context, email string) (entity.User, error)) *MockRepository_GetByEmail_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetFilePath provides a mock function for the type MockRepository
-func (_mock *MockRepository) GetFilePath(name string, userID uuid.UUID) (string, error) {
-	ret := _mock.Called(name, userID)
+func (_mock *MockRepository) GetFilePath(ctx context.Context, name string, userID uuid.UUID) (string, error) {
+	ret := _mock.Called(ctx, name, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetFilePath")
@@ -273,16 +287,16 @@ func (_mock *MockRepository) GetFilePath(name string, userID uuid.UUID) (string,
 
 	var r0 string
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(string, uuid.UUID) (string, error)); ok {
-		return returnFunc(name, userID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uuid.UUID) (string, error)); ok {
+		return returnFunc(ctx, name, userID)
 	}
-	if returnFunc, ok := ret.Get(0).(func(string, uuid.UUID) string); ok {
-		r0 = returnFunc(name, userID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uuid.UUID) string); ok {
+		r0 = returnFunc(ctx, name, userID)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
-	if returnFunc, ok := ret.Get(1).(func(string, uuid.UUID) error); ok {
-		r1 = returnFunc(name, userID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, uuid.UUID) error); ok {
+		r1 = returnFunc(ctx, name, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -295,25 +309,31 @@ type MockRepository_GetFilePath_Call struct {
 }
 
 // GetFilePath is a helper method to define mock.On call
+//   - ctx context.Context
 //   - name string
 //   - userID uuid.UUID
-func (_e *MockRepository_Expecter) GetFilePath(name interface{}, userID interface{}) *MockRepository_GetFilePath_Call {
-	return &MockRepository_GetFilePath_Call{Call: _e.mock.On("GetFilePath", name, userID)}
+func (_e *MockRepository_Expecter) GetFilePath(ctx interface{}, name interface{}, userID interface{}) *MockRepository_GetFilePath_Call {
+	return &MockRepository_GetFilePath_Call{Call: _e.mock.On("GetFilePath", ctx, name, userID)}
 }
 
-func (_c *MockRepository_GetFilePath_Call) Run(run func(name string, userID uuid.UUID)) *MockRepository_GetFilePath_Call {
+func (_c *MockRepository_GetFilePath_Call) Run(run func(ctx context.Context, name string, userID uuid.UUID)) *MockRepository_GetFilePath_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 string
+		var arg0 context.Context
 		if args[0] != nil {
-			arg0 = args[0].(string)
+			arg0 = args[0].(context.Context)
 		}
-		var arg1 uuid.UUID
+		var arg1 string
 		if args[1] != nil {
-			arg1 = args[1].(uuid.UUID)
+			arg1 = args[1].(string)
+		}
+		var arg2 uuid.UUID
+		if args[2] != nil {
+			arg2 = args[2].(uuid.UUID)
 		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -324,14 +344,14 @@ func (_c *MockRepository_GetFilePath_Call) Return(s string, err error) *MockRepo
 	return _c
 }
 
-func (_c *MockRepository_GetFilePath_Call) RunAndReturn(run func(name string, userID uuid.UUID) (string, error)) *MockRepository_GetFilePath_Call {
+func (_c *MockRepository_GetFilePath_Call) RunAndReturn(run func(ctx context.Context, name string, userID uuid.UUID) (string, error)) *MockRepository_GetFilePath_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetFilePaths provides a mock function for the type MockRepository
-func (_mock *MockRepository) GetFilePaths(downloadReq dto.FilesList, userID uuid.UUID) ([]entity.FilePath, error) {
-	ret := _mock.Called(downloadReq, userID)
+func (_mock *MockRepository) GetFilePaths(ctx context.Context, downloadReq dto.FilesList, userID uuid.UUID) ([]entity.FilePath, error) {
+	ret := _mock.Called(ctx, downloadReq, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetFilePaths")
@@ -339,18 +359,18 @@ func (_mock *MockRepository) GetFilePaths(downloadReq dto.FilesList, userID uuid
 
 	var r0 []entity.FilePath
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(dto.FilesList, uuid.UUID) ([]entity.FilePath, error)); ok {
-		return returnFunc(downloadReq, userID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, dto.FilesList, uuid.UUID) ([]entity.FilePath, error)); ok {
+		return returnFunc(ctx, downloadReq, userID)
 	}
-	if returnFunc, ok := ret.Get(0).(func(dto.FilesList, uuid.UUID) []entity.FilePath); ok {
-		r0 = returnFunc(downloadReq, userID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, dto.FilesList, uuid.UUID) []entity.FilePath); ok {
+		r0 = returnFunc(ctx, downloadReq, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]entity.FilePath)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(dto.FilesList, uuid.UUID) error); ok {
-		r1 = returnFunc(downloadReq, userID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, dto.FilesList, uuid.UUID) error); ok {
+		r1 = returnFunc(ctx, downloadReq, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -363,17 +383,91 @@ type MockRepository_GetFilePaths_Call struct {
 }
 
 // GetFilePaths is a helper method to define mock.On call
+//   - ctx context.Context
 //   - downloadReq dto.FilesList
 //   - userID uuid.UUID
-func (_e *MockRepository_Expecter) GetFilePaths(downloadReq interface{}, userID interface{}) *MockRepository_GetFilePaths_Call {
-	return &MockRepository_GetFilePaths_Call{Call: _e.mock.On("GetFilePaths", downloadReq, userID)}
+func (_e *MockRepository_Expecter) GetFilePaths(ctx interface{}, downloadReq interface{}, userID interface{}) *MockRepository_GetFilePaths_Call {
+	return &MockRepository_GetFilePaths_Call{Call: _e.mock.On("GetFilePaths", ctx, downloadReq, userID)}
 }
 
-func (_c *MockRepository_GetFilePaths_Call) Run(run func(downloadReq dto.FilesList, userID uuid.UUID)) *MockRepository_GetFilePaths_Call {
+func (_c *MockRepository_GetFilePaths_Call) Run(run func(ctx context.Context, downloadReq dto.FilesList, userID uuid.UUID)) *MockRepository_GetFilePaths_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 dto.FilesList
+		var arg0 context.Context
 		if args[0] != nil {
-			arg0 = args[0].(dto.FilesList)
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 dto.FilesList
+		if args[1] != nil {
+			arg1 = args[1].(dto.FilesList)
+		}
+		var arg2 uuid.UUID
+		if args[2] != nil {
+			arg2 = args[2].(uuid.UUID)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRepository_GetFilePaths_Call) Return(filePaths []entity.FilePath, err error) *MockRepository_GetFilePaths_Call {
+	_c.Call.Return(filePaths, err)
+	return _c
+}
+
+func (_c *MockRepository_GetFilePaths_Call) RunAndReturn(run func(ctx context.Context, downloadReq dto.FilesList, userID uuid.UUID) ([]entity.FilePath, error)) *MockRepository_GetFilePaths_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetFilesMetadata provides a mock function for the type MockRepository
+func (_mock *MockRepository) GetFilesMetadata(ctx context.Context, userID uuid.UUID) ([]dto.MetadataOutput, error) {
+	ret := _mock.Called(ctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetFilesMetadata")
+	}
+
+	var r0 []dto.MetadataOutput
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) ([]dto.MetadataOutput, error)); ok {
+		return returnFunc(ctx, userID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) []dto.MetadataOutput); ok {
+		r0 = returnFunc(ctx, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]dto.MetadataOutput)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = returnFunc(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockRepository_GetFilesMetadata_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetFilesMetadata'
+type MockRepository_GetFilesMetadata_Call struct {
+	*mock.Call
+}
+
+// GetFilesMetadata is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID uuid.UUID
+func (_e *MockRepository_Expecter) GetFilesMetadata(ctx interface{}, userID interface{}) *MockRepository_GetFilesMetadata_Call {
+	return &MockRepository_GetFilesMetadata_Call{Call: _e.mock.On("GetFilesMetadata", ctx, userID)}
+}
+
+func (_c *MockRepository_GetFilesMetadata_Call) Run(run func(ctx context.Context, userID uuid.UUID)) *MockRepository_GetFilesMetadata_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
 		}
 		var arg1 uuid.UUID
 		if args[1] != nil {
@@ -387,74 +481,12 @@ func (_c *MockRepository_GetFilePaths_Call) Run(run func(downloadReq dto.FilesLi
 	return _c
 }
 
-func (_c *MockRepository_GetFilePaths_Call) Return(filePaths []entity.FilePath, err error) *MockRepository_GetFilePaths_Call {
-	_c.Call.Return(filePaths, err)
-	return _c
-}
-
-func (_c *MockRepository_GetFilePaths_Call) RunAndReturn(run func(downloadReq dto.FilesList, userID uuid.UUID) ([]entity.FilePath, error)) *MockRepository_GetFilePaths_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// GetFilesMetadata provides a mock function for the type MockRepository
-func (_mock *MockRepository) GetFilesMetadata(userID uuid.UUID) ([]dto.MetadataOutput, error) {
-	ret := _mock.Called(userID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetFilesMetadata")
-	}
-
-	var r0 []dto.MetadataOutput
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(uuid.UUID) ([]dto.MetadataOutput, error)); ok {
-		return returnFunc(userID)
-	}
-	if returnFunc, ok := ret.Get(0).(func(uuid.UUID) []dto.MetadataOutput); ok {
-		r0 = returnFunc(userID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]dto.MetadataOutput)
-		}
-	}
-	if returnFunc, ok := ret.Get(1).(func(uuid.UUID) error); ok {
-		r1 = returnFunc(userID)
-	} else {
-		r1 = ret.Error(1)
-	}
-	return r0, r1
-}
-
-// MockRepository_GetFilesMetadata_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetFilesMetadata'
-type MockRepository_GetFilesMetadata_Call struct {
-	*mock.Call
-}
-
-// GetFilesMetadata is a helper method to define mock.On call
-//   - userID uuid.UUID
-func (_e *MockRepository_Expecter) GetFilesMetadata(userID interface{}) *MockRepository_GetFilesMetadata_Call {
-	return &MockRepository_GetFilesMetadata_Call{Call: _e.mock.On("GetFilesMetadata", userID)}
-}
-
-func (_c *MockRepository_GetFilesMetadata_Call) Run(run func(userID uuid.UUID)) *MockRepository_GetFilesMetadata_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 uuid.UUID
-		if args[0] != nil {
-			arg0 = args[0].(uuid.UUID)
-		}
-		run(
-			arg0,
-		)
-	})
-	return _c
-}
-
 func (_c *MockRepository_GetFilesMetadata_Call) Return(metadataOutputs []dto.MetadataOutput, err error) *MockRepository_GetFilesMetadata_Call {
 	_c.Call.Return(metadataOutputs, err)
 	return _c
 }
 
-func (_c *MockRepository_GetFilesMetadata_Call) RunAndReturn(run func(userID uuid.UUID) ([]dto.MetadataOutput, error)) *MockRepository_GetFilesMetadata_Call {
+func (_c *MockRepository_GetFilesMetadata_Call) RunAndReturn(run func(ctx context.Context, userID uuid.UUID) ([]dto.MetadataOutput, error)) *MockRepository_GetFilesMetadata_Call {
 	_c.Call.Return(run)
 	return _c
 }

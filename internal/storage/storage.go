@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"errors"
 	"io"
 
@@ -15,7 +16,7 @@ var (
 )
 
 type Storage interface {
-	Save(fileName string, userID uuid.UUID, r io.Reader) (path string, size int64, err error)
+	Save(ctx context.Context, fileName string, userID uuid.UUID, r io.Reader) (path string, size int64, err error)
 	Remove(path string) error
-	WriteZIP(w io.Writer, files []entity.FilePath) error
+	WriteZIP(ctx context.Context, w io.Writer, files []entity.FilePath) error
 }

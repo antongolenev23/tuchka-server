@@ -10,10 +10,9 @@ import (
 	"time"
 
 	"github.com/antongolenev23/tuchka-server/internal/config"
-	"github.com/antongolenev23/tuchka-server/internal/repository"
-
 	"github.com/antongolenev23/tuchka-server/internal/http-server/handler"
 	"github.com/antongolenev23/tuchka-server/internal/http-server/router"
+	"github.com/antongolenev23/tuchka-server/internal/repository"
 	"github.com/antongolenev23/tuchka-server/internal/repository/postgres"
 	"github.com/antongolenev23/tuchka-server/internal/service"
 	"github.com/antongolenev23/tuchka-server/internal/storage/disk"
@@ -121,9 +120,8 @@ func (a *App) shutdown(ctx context.Context) {
 	}
 
 	if err != nil {
-		a.log.Warn("Uncorrect shutdown")
+		a.log.Warn("uncorrect shutdown")
 	} else {
 		a.log.Info("graceful shutdown completed")
 	}
-
 }

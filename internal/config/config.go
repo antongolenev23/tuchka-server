@@ -25,10 +25,11 @@ type Config struct {
 }
 
 type DatabaseConfig struct {
-	Name     string `yaml:"name" env-required:"true"`
-	User     string `yaml:"user" env-required:"true"`
+	User     string `env:"DB_USER" env-required:"true"`
 	Password string `env:"DB_PASSWORD" env-required:"true"`
-	SSLMode  string `yaml:"sslmode" env-required:"true"`
+	Name     string `env:"DB_NAME" env-required:"true"`
+	Port     int    `env:"DB_PORT" env-required:"true"`
+	SSLMode  string `env:"DB_SSLMODE" env-required:"true"`
 }
 
 type HTTPServerConfig struct {
@@ -48,7 +49,7 @@ type AuthConfig struct {
 type FilesConfig struct {
 	StorageDir  string `yaml:"storage_dir" env-default:"/var/lib/tuchka-server"`
 	MaxDownload int    `yaml:"max_download" env-default:"30"`
-	MaxDelete   int    `yaml:"max_delete" env-default:"60"`
+	MaxDelete   int    `yaml:"max_delete" env-default:"30"`
 }
 
 func MustLoad() *Config {

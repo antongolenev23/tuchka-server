@@ -2,6 +2,7 @@ package disk
 
 import (
 	"archive/zip"
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -13,6 +14,7 @@ import (
 	"github.com/antongolenev23/tuchka-server/internal/config"
 	"github.com/antongolenev23/tuchka-server/internal/entity"
 	"github.com/antongolenev23/tuchka-server/internal/storage"
+	"github.com/antongolenev23/tuchka-server/pkg/types"
 )
 
 type DiskStorage struct {
@@ -25,7 +27,7 @@ func New(cfg *config.Config) *DiskStorage {
 	}
 }
 
-func (s *DiskStorage) Save(fileName string, userID uuid.UUID, r io.Reader) (string, int64, error) {
+func (s *DiskStorage) Save(ctx context.Context, fileName string, userID uuid.UUID, r io.Reader) (string, int64, error) {
 	const op = "storage.disk.Save"
 
 	userSubDirectoryName := userID.String()
@@ -47,9 +49,14 @@ func (s *DiskStorage) Save(fileName string, userID uuid.UUID, r io.Reader) (stri
 		return "", 0, fmt.Errorf("%s: %w", op, err)
 	}
 
-	size, err := io.Copy(outFile, r)
+	size, err := io.Copy(outFile, &types.ContextReader{Ctx: ctx, R: r})
 	outFile.Close()
 	if err != nil {
+		removeErr := s.Remove(dstPath)
+		if removeErr != nil {
+			return "", 0, fmt.Errorf("%s: %w, %w", op, err, removeErr)
+		}
+
 		return "", 0, fmt.Errorf("%s: %w", op, err)
 	}
 
@@ -68,13 +75,17 @@ func (s *DiskStorage) Remove(path string) error {
 	return nil
 }
 
-func (s *DiskStorage) WriteZIP(w io.Writer, files []entity.FilePath) error {
+func (s *DiskStorage) WriteZIP(ctx context.Context, w io.Writer, files []entity.FilePath) error {
 	const op = "storage.disk.WriteZIP"
 
 	zipWriter := zip.NewWriter(w)
 	defer zipWriter.Close()
 
 	for _, f := range files {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+
 		file, err := os.Open(f.Path)
 		if err != nil {
 			if os.IsNotExist(err) {
@@ -89,7 +100,7 @@ func (s *DiskStorage) WriteZIP(w io.Writer, files []entity.FilePath) error {
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
-		if _, err := io.Copy(writer, file); err != nil {
+		if _, err := io.Copy(writer, &types.ContextReader{Ctx: ctx, R: file}); err != nil {
 			file.Close()
 			return fmt.Errorf("%s: %w", op, err)
 		}

@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -25,9 +26,10 @@ func New(cfg *config.Config) (repository.Repository, error) {
 	const op = "repository.postgres.New"
 
 	dsn := fmt.Sprintf(
-		"postgres://%s:%s@db:5432/%s?sslmode=%s",
+		"postgres://%s:%s@db:%d/%s?sslmode=%s",
 		cfg.Database.User,
 		cfg.Database.Password,
+		cfg.Database.Port,
 		cfg.Database.Name,
 		cfg.Database.SSLMode,
 	)
@@ -58,7 +60,7 @@ func (p *PostgresRepository) Close() error {
 	return p.db.Close()
 }
 
-func (p *PostgresRepository) Create(user entity.User) (uuid.UUID, error) {
+func (p *PostgresRepository) Create(ctx context.Context, user entity.User) (uuid.UUID, error) {
 	const op = "repository.postgres.Create"
 
 	query := `
@@ -68,20 +70,20 @@ func (p *PostgresRepository) Create(user entity.User) (uuid.UUID, error) {
 		`
 	var id uuid.UUID
 
-	err := p.db.QueryRow(query, user.Email, user.PasswordHash).Scan(&id)
+	err := p.db.QueryRowContext(ctx, query, user.Email, user.PasswordHash).Scan(&id)
 	if err != nil {
 		return id, fmt.Errorf("%s: %w", op, err)
 	}
 	return id, nil
 }
 
-func (p *PostgresRepository) GetByEmail(email string) (entity.User, error) {
+func (p *PostgresRepository) GetByEmail(ctx context.Context, email string) (entity.User, error) {
 	const op = "repository.postgres.GetByEmail"
 
 	var user entity.User
 	query := `SELECT id, email, password_hash FROM users WHERE email = $1`
 
-	err := p.db.QueryRow(query, email).Scan(
+	err := p.db.QueryRowContext(ctx, query, email).Scan(
 		&user.ID, &user.Email, &user.PasswordHash,
 	)
 	if err != nil {
@@ -113,7 +115,7 @@ func (p *PostgresRepository) SaveFileMetadata(info model.MetadataInput) error {
 	return nil
 }
 
-func (p *PostgresRepository) GetFilesMetadata(userID uuid.UUID) ([]dto.MetadataOutput, error) {
+func (p *PostgresRepository) GetFilesMetadata(ctx context.Context, userID uuid.UUID) ([]dto.MetadataOutput, error) {
 	const op = "repository.postgres.GetFileMetadata"
 
 	query := `
@@ -123,7 +125,7 @@ func (p *PostgresRepository) GetFilesMetadata(userID uuid.UUID) ([]dto.MetadataO
 		ORDER BY created_at DESC
 	`
 
-	rows, err := p.db.Query(query, userID)
+	rows, err := p.db.QueryContext(ctx, query, userID)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
@@ -154,7 +156,7 @@ func (p *PostgresRepository) GetFilesMetadata(userID uuid.UUID) ([]dto.MetadataO
 	return allMetadata, nil
 }
 
-func (p *PostgresRepository) GetFilePaths(downloadReq dto.FilesList, userID uuid.UUID) ([]entity.FilePath, error) {
+func (p *PostgresRepository) GetFilePaths(ctx context.Context, downloadReq dto.FilesList, userID uuid.UUID) ([]entity.FilePath, error) {
 	const op = "repository.postgres.GetFilePaths"
 
 	query := `
@@ -165,7 +167,7 @@ func (p *PostgresRepository) GetFilePaths(downloadReq dto.FilesList, userID uuid
 
 	var files []entity.FilePath
 
-	stmt, err := p.db.Prepare(query)
+	stmt, err := p.db.PrepareContext(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
@@ -174,7 +176,7 @@ func (p *PostgresRepository) GetFilePaths(downloadReq dto.FilesList, userID uuid
 	for _, name := range downloadReq.Files {
 		var f entity.FilePath
 
-		err := stmt.QueryRow(userID, name).Scan(&f.Name, &f.Path)
+		err := stmt.QueryRowContext(ctx, userID, name).Scan(&f.Name, &f.Path)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				return nil, fmt.Errorf("%s: %w", op, repository.ErrMetadataNotFound)
@@ -201,13 +203,13 @@ func (p *PostgresRepository) DeleteFileMetadata(name string, userID uuid.UUID) e
 	return nil
 }
 
-func (p *PostgresRepository) GetFilePath(name string, userID uuid.UUID) (string, error) {
+func (p *PostgresRepository) GetFilePath(ctx context.Context, name string, userID uuid.UUID) (string, error) {
 	const op = "repository.postgres.GetFilePath"
 
 	query := `SELECT path FROM files WHERE user_id = $1 AND name = $2`
 
 	var path string
-	err := p.db.QueryRow(query, userID, name).Scan(&path)
+	err := p.db.QueryRowContext(ctx, query, userID, name).Scan(&path)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return "", fmt.Errorf("%s: %w", op, repository.ErrMetadataNotFound)

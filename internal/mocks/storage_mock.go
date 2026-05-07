@@ -5,6 +5,7 @@
 package mocks
 
 import (
+	"context"
 	"io"
 
 	"github.com/google/uuid"
@@ -92,8 +93,8 @@ func (_c *MockStorage_Remove_Call) RunAndReturn(run func(path string) error) *Mo
 }
 
 // Save provides a mock function for the type MockStorage
-func (_mock *MockStorage) Save(fileName string, userID uuid.UUID, r io.Reader) (string, int64, error) {
-	ret := _mock.Called(fileName, userID, r)
+func (_mock *MockStorage) Save(ctx context.Context, fileName string, userID uuid.UUID, r io.Reader) (string, int64, error) {
+	ret := _mock.Called(ctx, fileName, userID, r)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Save")
@@ -102,21 +103,21 @@ func (_mock *MockStorage) Save(fileName string, userID uuid.UUID, r io.Reader) (
 	var r0 string
 	var r1 int64
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(string, uuid.UUID, io.Reader) (string, int64, error)); ok {
-		return returnFunc(fileName, userID, r)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uuid.UUID, io.Reader) (string, int64, error)); ok {
+		return returnFunc(ctx, fileName, userID, r)
 	}
-	if returnFunc, ok := ret.Get(0).(func(string, uuid.UUID, io.Reader) string); ok {
-		r0 = returnFunc(fileName, userID, r)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uuid.UUID, io.Reader) string); ok {
+		r0 = returnFunc(ctx, fileName, userID, r)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
-	if returnFunc, ok := ret.Get(1).(func(string, uuid.UUID, io.Reader) int64); ok {
-		r1 = returnFunc(fileName, userID, r)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, uuid.UUID, io.Reader) int64); ok {
+		r1 = returnFunc(ctx, fileName, userID, r)
 	} else {
 		r1 = ret.Get(1).(int64)
 	}
-	if returnFunc, ok := ret.Get(2).(func(string, uuid.UUID, io.Reader) error); ok {
-		r2 = returnFunc(fileName, userID, r)
+	if returnFunc, ok := ret.Get(2).(func(context.Context, string, uuid.UUID, io.Reader) error); ok {
+		r2 = returnFunc(ctx, fileName, userID, r)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -129,31 +130,37 @@ type MockStorage_Save_Call struct {
 }
 
 // Save is a helper method to define mock.On call
+//   - ctx context.Context
 //   - fileName string
 //   - userID uuid.UUID
 //   - r io.Reader
-func (_e *MockStorage_Expecter) Save(fileName interface{}, userID interface{}, r interface{}) *MockStorage_Save_Call {
-	return &MockStorage_Save_Call{Call: _e.mock.On("Save", fileName, userID, r)}
+func (_e *MockStorage_Expecter) Save(ctx interface{}, fileName interface{}, userID interface{}, r interface{}) *MockStorage_Save_Call {
+	return &MockStorage_Save_Call{Call: _e.mock.On("Save", ctx, fileName, userID, r)}
 }
 
-func (_c *MockStorage_Save_Call) Run(run func(fileName string, userID uuid.UUID, r io.Reader)) *MockStorage_Save_Call {
+func (_c *MockStorage_Save_Call) Run(run func(ctx context.Context, fileName string, userID uuid.UUID, r io.Reader)) *MockStorage_Save_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 string
+		var arg0 context.Context
 		if args[0] != nil {
-			arg0 = args[0].(string)
+			arg0 = args[0].(context.Context)
 		}
-		var arg1 uuid.UUID
+		var arg1 string
 		if args[1] != nil {
-			arg1 = args[1].(uuid.UUID)
+			arg1 = args[1].(string)
 		}
-		var arg2 io.Reader
+		var arg2 uuid.UUID
 		if args[2] != nil {
-			arg2 = args[2].(io.Reader)
+			arg2 = args[2].(uuid.UUID)
+		}
+		var arg3 io.Reader
+		if args[3] != nil {
+			arg3 = args[3].(io.Reader)
 		}
 		run(
 			arg0,
 			arg1,
 			arg2,
+			arg3,
 		)
 	})
 	return _c
@@ -164,22 +171,22 @@ func (_c *MockStorage_Save_Call) Return(path string, size int64, err error) *Moc
 	return _c
 }
 
-func (_c *MockStorage_Save_Call) RunAndReturn(run func(fileName string, userID uuid.UUID, r io.Reader) (string, int64, error)) *MockStorage_Save_Call {
+func (_c *MockStorage_Save_Call) RunAndReturn(run func(ctx context.Context, fileName string, userID uuid.UUID, r io.Reader) (string, int64, error)) *MockStorage_Save_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // WriteZIP provides a mock function for the type MockStorage
-func (_mock *MockStorage) WriteZIP(w io.Writer, files []entity.FilePath) error {
-	ret := _mock.Called(w, files)
+func (_mock *MockStorage) WriteZIP(ctx context.Context, w io.Writer, files []entity.FilePath) error {
+	ret := _mock.Called(ctx, w, files)
 
 	if len(ret) == 0 {
 		panic("no return value specified for WriteZIP")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(io.Writer, []entity.FilePath) error); ok {
-		r0 = returnFunc(w, files)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, io.Writer, []entity.FilePath) error); ok {
+		r0 = returnFunc(ctx, w, files)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -192,25 +199,31 @@ type MockStorage_WriteZIP_Call struct {
 }
 
 // WriteZIP is a helper method to define mock.On call
+//   - ctx context.Context
 //   - w io.Writer
 //   - files []entity.FilePath
-func (_e *MockStorage_Expecter) WriteZIP(w interface{}, files interface{}) *MockStorage_WriteZIP_Call {
-	return &MockStorage_WriteZIP_Call{Call: _e.mock.On("WriteZIP", w, files)}
+func (_e *MockStorage_Expecter) WriteZIP(ctx interface{}, w interface{}, files interface{}) *MockStorage_WriteZIP_Call {
+	return &MockStorage_WriteZIP_Call{Call: _e.mock.On("WriteZIP", ctx, w, files)}
 }
 
-func (_c *MockStorage_WriteZIP_Call) Run(run func(w io.Writer, files []entity.FilePath)) *MockStorage_WriteZIP_Call {
+func (_c *MockStorage_WriteZIP_Call) Run(run func(ctx context.Context, w io.Writer, files []entity.FilePath)) *MockStorage_WriteZIP_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 io.Writer
+		var arg0 context.Context
 		if args[0] != nil {
-			arg0 = args[0].(io.Writer)
+			arg0 = args[0].(context.Context)
 		}
-		var arg1 []entity.FilePath
+		var arg1 io.Writer
 		if args[1] != nil {
-			arg1 = args[1].([]entity.FilePath)
+			arg1 = args[1].(io.Writer)
+		}
+		var arg2 []entity.FilePath
+		if args[2] != nil {
+			arg2 = args[2].([]entity.FilePath)
 		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -221,7 +234,7 @@ func (_c *MockStorage_WriteZIP_Call) Return(err error) *MockStorage_WriteZIP_Cal
 	return _c
 }
 
-func (_c *MockStorage_WriteZIP_Call) RunAndReturn(run func(w io.Writer, files []entity.FilePath) error) *MockStorage_WriteZIP_Call {
+func (_c *MockStorage_WriteZIP_Call) RunAndReturn(run func(ctx context.Context, w io.Writer, files []entity.FilePath) error) *MockStorage_WriteZIP_Call {
 	_c.Call.Return(run)
 	return _c
 }

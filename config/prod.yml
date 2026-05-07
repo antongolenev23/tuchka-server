@@ -1,10 +1,6 @@
 env: "prod" #local, prod
-database:
-  name: "tuchka"
-  user: "appuser"
-  sslmode: "disable"
 http_server:
-  address: "0.0.0.0:8080"
-  request_read_timeout: 5s
-  response_write_timeout: 5s
-  idle_timeout: 60s
+  address: ":8443"
+  request_read_timeout: 60s
+  response_write_timeout: 30s
+  idle_timeout: 120s

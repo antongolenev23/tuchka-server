@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"errors"
 
 	"github.com/google/uuid"
@@ -22,15 +23,15 @@ const (
 
 type FileMetadata interface {
 	SaveFileMetadata(info model.MetadataInput) error
-	GetFilesMetadata(userID uuid.UUID) ([]dto.MetadataOutput, error)
-	GetFilePaths(downloadReq dto.FilesList, userID uuid.UUID) ([]entity.FilePath, error)
+	GetFilesMetadata(ctx context.Context, userID uuid.UUID) ([]dto.MetadataOutput, error)
+	GetFilePaths(ctx context.Context, downloadReq dto.FilesList, userID uuid.UUID) ([]entity.FilePath, error)
 	DeleteFileMetadata(name string, userID uuid.UUID) error
-	GetFilePath(name string, userID uuid.UUID) (string, error)
+	GetFilePath(ctx context.Context, name string, userID uuid.UUID) (string, error)
 }
 
 type UserAccount interface {
-	Create(user entity.User) (uuid.UUID, error)
-	GetByEmail(email string) (entity.User, error)
+	Create(ctx context.Context, user entity.User) (uuid.UUID, error)
+	GetByEmail(ctx context.Context, email string) (entity.User, error)
 }
 
 type Repository interface {
