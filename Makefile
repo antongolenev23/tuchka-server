@@ -9,7 +9,7 @@ mock:
 
 run:
 	@echo "Building with version: $(VERSION)"
-	VERSION=$(VERSION) docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
+	VERSION=$(VERSION) docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --build
 
 test:
 	go test ./internal/service
