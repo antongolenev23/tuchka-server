@@ -17,7 +17,7 @@ test-unit:
 test-functional:
 	docker compose -p tuchka-test -f docker-compose.yml -f docker-compose.test.yml down -v
 
-	docker compose -p tuchka-test -f docker-compose.yml -f docker-compose.test.yml up --build
+	docker compose -p tuchka-test -f docker-compose.yml -f docker-compose.test.yml up -d --build
 
 	./scripts/wait-for.sh https://127.0.0.1:8443/health
 

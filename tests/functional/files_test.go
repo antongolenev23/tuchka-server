@@ -24,7 +24,7 @@ func authToken(t *testing.T) string {
 	return "Bearer " + r.Token
 }
 
-func TestFiles_UploadListDelete(t *testing.T) {
+func TestFiles_UploadListDownloadDelete(t *testing.T) {
 	token := authToken(t)
 
 	// upload
@@ -70,6 +70,26 @@ func TestFiles_UploadListDelete(t *testing.T) {
 
 	if len(files) == 0 {
 		t.Fatal("no files found")
+	}
+
+	// download
+	downloadReq := map[string][]string{
+		"files": {files[0]["name"].(string)},
+	}
+	resp = doRequest(t, "POST", "/files/download", downloadReq, token)
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		t.Fatalf("download failed: %d", resp.StatusCode)
+	}
+
+	contentType := resp.Header.Get("Content-Type")
+	if contentType != "application/zip" {
+		t.Fatalf("wrong content type: %s, expected application/zip", contentType)
+	}
+
+	if resp.ContentLength == 0 {
+		t.Fatal("downloaded zip is empty")
 	}
 
 	// delete
