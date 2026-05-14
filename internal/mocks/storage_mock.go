@@ -8,10 +8,9 @@ import (
 	"context"
 	"io"
 
+	"github.com/antongolenev23/tuchka-server/internal/entity"
 	"github.com/google/uuid"
 	mock "github.com/stretchr/testify/mock"
-
-	"github.com/antongolenev23/tuchka-server/internal/entity"
 )
 
 // NewMockStorage creates a new instance of MockStorage. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

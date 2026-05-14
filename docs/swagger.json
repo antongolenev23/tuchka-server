@@ -1,11 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "API для загрузки и управления файлами",
-        "title": "Tuchka Server API",
-        "termsOfService": "http://swagger.io/terms/",
-        "contact": {},
-        "version": "0.0.4"
+        "contact": {}
     },
     "paths": {
         "/auth/login": {
@@ -153,7 +149,7 @@
             }
         },
         "/files/delete": {
-            "delete": {
+            "post": {
                 "security": [
                     {
                         "BearerAuth": []
@@ -418,13 +414,6 @@
                     "type": "string"
                 }
             }
-        }
-    },
-    "securityDefinitions": {
-        "BearerAuth": {
-            "type": "apiKey",
-            "name": "Authorization",
-            "in": "header"
         }
     }
 }

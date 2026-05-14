@@ -234,15 +234,7 @@ func (s *service) Download(ctx context.Context, req dto.FilesList, w io.Writer, 
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	var storageFiles []entity.FilePath
-	for _, f := range files {
-		storageFiles = append(storageFiles, entity.FilePath{
-			Name: f.Name,
-			Path: f.Path,
-		})
-	}
-
-	if err := s.storage.WriteZIP(ctx, w, storageFiles); err != nil {
+	if err := s.storage.WriteZIP(ctx, w, files); err != nil {
 		if errors.Is(err, storage.ErrFileNotFound) {
 			return ErrNotAllFilesExist
 		}

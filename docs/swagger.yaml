@@ -52,10 +52,6 @@ definitions:
     type: object
 info:
   contact: {}
-  description: API для загрузки и управления файлами
-  termsOfService: http://swagger.io/terms/
-  title: Tuchka Server API
-  version: 0.0.4
 paths:
   /auth/login:
     post:
@@ -151,7 +147,7 @@ paths:
       tags:
       - files
   /files/delete:
-    delete:
+    post:
       consumes:
       - application/json
       description: Удаляет указанные файлы пользователя
@@ -268,9 +264,4 @@ paths:
       summary: Загрузка файлов
       tags:
       - files
-securityDefinitions:
-  BearerAuth:
-    in: header
-    name: Authorization
-    type: apiKey
 swagger: "2.0"

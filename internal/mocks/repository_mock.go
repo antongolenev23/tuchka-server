@@ -7,12 +7,11 @@ package mocks
 import (
 	"context"
 
-	"github.com/google/uuid"
-	mock "github.com/stretchr/testify/mock"
-
 	"github.com/antongolenev23/tuchka-server/internal/entity"
 	"github.com/antongolenev23/tuchka-server/internal/http-server/handler/dto"
 	"github.com/antongolenev23/tuchka-server/internal/repository/model"
+	"github.com/google/uuid"
+	mock "github.com/stretchr/testify/mock"
 )
 
 // NewMockRepository creates a new instance of MockRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

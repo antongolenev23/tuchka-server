@@ -275,7 +275,7 @@ func (h *Handler) Download() http.HandlerFunc {
 // @Failure 400 {object} response.Response
 // @Failure 401 {object} response.Response
 // @Failure 500 {object} response.Response
-// @Router /files/delete [delete]
+// @Router /files/delete [post]
 func (h *Handler) Delete() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		const op = "handler.Delete"
@@ -315,6 +315,14 @@ func (h *Handler) Delete() http.HandlerFunc {
 		)
 
 		render.JSON(w, r, dto.GetResultDTO(result))
+	})
+}
+
+func(h *Handler) Health() http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status":"ok"}`))
 	})
 }
 

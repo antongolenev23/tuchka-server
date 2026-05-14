@@ -14,6 +14,7 @@ type FilePath struct {
 	Name string
 	Path string
 }
+
 type OperationResult struct {
 	Success []string
 	Errors  map[string]string
